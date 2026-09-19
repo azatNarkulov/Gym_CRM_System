@@ -1,4 +1,4 @@
-package com.epam;
+package com.epam.util;
 
 public enum TrainingType {
     FITNESS,

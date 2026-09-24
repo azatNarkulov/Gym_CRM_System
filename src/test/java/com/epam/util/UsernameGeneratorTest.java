@@ -1,6 +1,6 @@
 package com.epam.util;
 
-import com.epam.object.Trainee;
+import com.epam.domain.Trainee;
 import com.epam.repository.TraineeDao;
 import com.epam.repository.TrainerDao;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,18 +19,17 @@ public class UsernameGeneratorTest {
 
     @BeforeEach
     public void setUp() {
-        usernameGenerator = new UsernameGenerator();
-
         traineeDao = mock(TraineeDao.class);
         trainerDao = mock(TrainerDao.class);
 
+        usernameGenerator = new UsernameGenerator();
         usernameGenerator.setTraineeDao(traineeDao);
         usernameGenerator.setTrainerDao(trainerDao);
     }
 
     @Test
-    public void shouldGenerateUsernameWithoutSuffix() {
-        Trainee trainee = generateTrainee();
+    public void shouldGenerateBaseUsernameWhenUsernameDoesNotExist() {
+        Trainee trainee = generateUser();
 
         when(traineeDao.existsByUsername("Bilbo.Baggins")).thenReturn(false);
         when(trainerDao.existsByUsername("Bilbo.Baggins")).thenReturn(false);
@@ -44,12 +43,10 @@ public class UsernameGeneratorTest {
     }
 
     @Test
-    public void shouldAddSuffixWhenUsernameExistsInTrainees() {
-        Trainee trainee = generateTrainee();
+    public void shouldGenerateUsernameWithSuffixWhenBaseUsernameExists() {
+        Trainee trainee = generateUser();
 
         when(traineeDao.existsByUsername("Bilbo.Baggins")).thenReturn(true);
-        when(trainerDao.existsByUsername("Bilbo.Baggins")).thenReturn(false);
-
         when(traineeDao.existsByUsername("Bilbo.Baggins1")).thenReturn(false);
 
         String result = usernameGenerator.generate(trainee);
@@ -58,8 +55,8 @@ public class UsernameGeneratorTest {
     }
 
     @Test
-    public void shouldAddSuffixWhenUsernameExistsInTrainers() {
-        Trainee trainee = generateTrainee();
+    public void shouldCheckAllRepositories() {
+        Trainee trainee = generateUser();
 
         when(traineeDao.existsByUsername("Bilbo.Baggins")).thenReturn(false);
         when(trainerDao.existsByUsername("Bilbo.Baggins")).thenReturn(true);
@@ -71,7 +68,7 @@ public class UsernameGeneratorTest {
         assertEquals("Bilbo.Baggins1", result);
     }
 
-    private Trainee generateTrainee() {
+    private Trainee generateUser() {
         Trainee trainee = new Trainee();
         trainee.setFirstName("Bilbo");
         trainee.setLastName("Baggins");

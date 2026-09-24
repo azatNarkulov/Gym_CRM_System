@@ -1,13 +1,18 @@
 package com.epam.service;
 
-import com.epam.object.Trainer;
+import com.epam.domain.Trainer;
 import com.epam.repository.TrainerDao;
+import com.epam.util.PasswordGenerator;
 import com.epam.util.UsernameGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,16 +22,18 @@ public class TrainerServiceTest {
     private TrainerService trainerService;
     private TrainerDao trainerDao;
     private UsernameGenerator usernameGenerator;
+    private PasswordGenerator passwordGenerator;
 
     @BeforeEach
     public void setUp() {
-        trainerService = new TrainerService();
-
         trainerDao = mock(TrainerDao.class);
         usernameGenerator = mock(UsernameGenerator.class);
+        passwordGenerator = mock(PasswordGenerator.class);
 
+        trainerService = new TrainerService();
         trainerService.setTrainerDao(trainerDao);
         trainerService.setUsernameGenerator(usernameGenerator);
+        trainerService.setPasswordGenerator(passwordGenerator);
     }
 
     @Test
@@ -34,42 +41,56 @@ public class TrainerServiceTest {
         Trainer trainer = generateTrainer();
 
         when(usernameGenerator.generate(trainer)).thenReturn("Bilbo.Baggins");
-        when(trainerDao.addTrainer(trainer)).thenReturn(trainer);
+        when(passwordGenerator.generate()).thenReturn("password12");
+        when(trainerDao.add(trainer)).thenReturn(trainer);
 
-        Trainer result = trainerService.addTrainer(trainer);
+        Trainer result = trainerService.add(trainer);
 
-        assertEquals("Bilbo.Baggins", result.getUsername());
-        assertEquals(10, result.getPassword().length());
         assertSame(trainer, result);
+        assertEquals("Bilbo.Baggins", result.getUsername());
+        assertEquals("password12", result.getPassword());
 
         verify(usernameGenerator).generate(trainer);
-        verify(trainerDao).addTrainer(trainer);
+        verify(passwordGenerator).generate();
+        verify(trainerDao).add(trainer);
     }
 
     @Test
     public void shouldUpdateTrainer() {
         Trainer trainer = generateTrainer();
 
-        when(trainerDao.updateTrainer(trainer)).thenReturn(trainer);
+        when(trainerDao.update(trainer)).thenReturn(trainer);
 
-        Trainer result = trainerService.updateTrainer(trainer);
+        Trainer result = trainerService.update(trainer);
 
         assertSame(trainer, result);
 
-        verify(trainerDao).updateTrainer(trainer);
+        verify(trainerDao).update(trainer);
     }
 
     @Test
     public void shouldGetTrainer() {
         Trainer trainer = generateTrainer();
 
-        when(trainerDao.getTrainer(1L)).thenReturn(trainer);
+        when(trainerDao.get(1L)).thenReturn(trainer);
 
-        Trainer result = trainerService.getTrainer(1L);
+        Optional<Trainer> result = trainerService.get(1L);
 
-        assertSame(trainer, result);
+        assertTrue(result.isPresent());
+        assertSame(trainer, result.get());
 
-        verify(trainerDao).getTrainer(1L);
+        verify(trainerDao).get(1L);
+    }
+
+    @Test
+    public void shouldReturnEmptyWhenTrainerDoesNotExist() {
+        when(trainerDao.get(1L)).thenReturn(null);
+
+        Optional<Trainer> result = trainerService.get(1L);
+
+        assertFalse(result.isPresent());
+
+        verify(trainerDao).get(1L);
     }
 
     private Trainer generateTrainer() {

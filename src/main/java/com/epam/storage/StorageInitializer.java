@@ -1,13 +1,16 @@
 package com.epam.storage;
 
-import com.epam.util.TrainingType;
-import com.epam.object.Trainee;
-import com.epam.object.Trainer;
-import com.epam.object.Training;
+import com.epam.exception.StorageInitializerException;
+import com.epam.domain.TrainingType;
+import com.epam.domain.Trainee;
+import com.epam.domain.Trainer;
+import com.epam.domain.Training;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -19,102 +22,135 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class StorageInitializer implements BeanPostProcessor {
+public class StorageInitializer {
 
-    private static final Logger log = LoggerFactory.getLogger(StorageInitializer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(StorageInitializer.class);
 
-    @Value("${trainee.data.file.path}")
+    private static final String SEPARATOR = ";";
+
     private String traineeDataFilePath;
-
-    @Value("${trainer.data.file.path}")
     private String trainerDataFilePath;
-
-    @Value("${training.data.file.path}")
     private String trainingDataFilePath;
 
-    @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName) {
-        switch (beanName) {
-            case "traineeMap":
-                log.info("Initializing trainee storage");
-                Map<Long, Trainee> traineeMap = (Map<Long, Trainee>) bean;
+    private Map<Long, Trainee> traineeMap;
+    private Map<Long, Trainer> trainerMap;
+    private Map<Long, Training> trainingMap;
 
-                try {
-                    List<String> lines = Files.readAllLines(Paths.get(traineeDataFilePath));
-                    for (String line : lines) {
-                        String[] fields = line.split(";");
-                        Trainee trainee = new Trainee();
-                        trainee.setFirstName(fields[0]);
-                        trainee.setLastName(fields[1]);
-                        trainee.setUsername(fields[2]);
-                        trainee.setPassword(fields[3]);
-                        trainee.setActive(Boolean.parseBoolean(fields[4]));
-                        trainee.setDateOfBirth(LocalDate.parse(fields[5]));
-                        trainee.setAddress(fields[6]);
-                        trainee.setUserId(Long.valueOf(fields[7]));
-                        traineeMap.put(trainee.getUserId(), trainee);
-                    }
+    @Value("${trainee.data.file.path}")
+    public void setTraineeDataFilePath(String traineeDataFilePath) {
+        this.traineeDataFilePath = traineeDataFilePath;
+    }
 
-                    log.info("Trainee storage initialized: {} records", traineeMap.size());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+    @Value("${trainer.data.file.path}")
+    public void setTrainerDataFilePath(String trainerDataFilePath) {
+        this.trainerDataFilePath = trainerDataFilePath;
+    }
 
-                break;
-            case "trainerMap":
-                log.info("Initializing trainer storage");
-                Map<Long, Trainer> trainerMap = (Map<Long, Trainer>) bean;
+    @Value("${training.data.file.path}")
+    public void setTrainingDataFilePath(String trainingDataFilePath) {
+        this.trainingDataFilePath = trainingDataFilePath;
+    }
 
-                try {
-                    List<String> lines = Files.readAllLines(Paths.get(trainerDataFilePath));
-                    for (String line : lines) {
-                        String[] fields = line.split(";");
-                        Trainer trainer = new Trainer();
-                        trainer.setFirstName(fields[0]);
-                        trainer.setLastName(fields[1]);
-                        trainer.setUsername(fields[2]);
-                        trainer.setPassword(fields[3]);
-                        trainer.setActive(Boolean.parseBoolean(fields[4]));
-                        trainer.setSpecialization(TrainingType.valueOf(fields[5]));
-                        trainer.setUserId(Long.valueOf(fields[6]));
-                        trainerMap.put(trainer.getUserId(), trainer);
-                    }
+    @Autowired
+    public void setTraineeMap(@Qualifier("traineeMap") Map<Long, Trainee> traineeMap) {
+        this.traineeMap = traineeMap;
+    }
 
-                    log.info("Trainer storage initialized: {} records", trainerMap.size());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+    @Autowired
+    public void setTrainerMap(@Qualifier("trainerMap") Map<Long, Trainer> trainerMap) {
+        this.trainerMap = trainerMap;
+    }
 
-                break;
-            case "trainingMap":
-                log.info("Initializing training storage");
-                Map<Long, Training> trainingMap = (Map<Long, Training>) bean;
+    @Autowired
+    public void setTrainingMap(@Qualifier("trainingMap") Map<Long, Training> trainingMap) {
+        this.trainingMap = trainingMap;
+    }
 
-                try {
-                    List<String> lines = Files.readAllLines(Paths.get(trainingDataFilePath));
-                    for (String line : lines) {
-                        String[] fields = line.split(";");
-                        Training training = new Training();
-                        training.setTraineeId(Long.valueOf(fields[0]));
-                        training.setTrainerId(Long.valueOf(fields[1]));
-                        training.setTrainingName(fields[2]);
-                        training.setTrainingType(TrainingType.valueOf(fields[3]));
-                        training.setTrainingDate(LocalDate.parse(fields[4]));
-                        training.setTrainingDuration(Duration.parse(fields[5]));
-                        training.setTrainingId(Long.valueOf(fields[6]));
-                        trainingMap.put(training.getTrainingId(), training);
-                    }
+    @PostConstruct
+    public void initialize() {
+        initializeTrainees();
+        initializeTrainers();
+        initializeTrainings();
+    }
 
-                    log.info("Training storage initialized: {} records", trainingMap.size());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+    private void initializeTrainees() {
+        LOG.info("Initializing trainee storage");
 
-                break;
-            default:
-                break;
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(traineeDataFilePath));
+
+            for (String line : lines) {
+                String[] fields = line.split(SEPARATOR);
+
+                Trainee trainee = new Trainee();
+                trainee.setFirstName(fields[0]);
+                trainee.setLastName(fields[1]);
+                trainee.setUsername(fields[2]);
+                trainee.setPassword(fields[3]);
+                trainee.setActive(Boolean.parseBoolean(fields[4]));
+                trainee.setDateOfBirth(LocalDate.parse(fields[5]));
+                trainee.setAddress(fields[6]);
+                trainee.setId(Long.valueOf(fields[7]));
+
+                traineeMap.put(trainee.getId(), trainee);
+            }
+
+            LOG.info("Trainee storage initialized: {} records", traineeMap.size());
+        } catch (IOException e) {
+            throw new StorageInitializerException("Failed to initialize trainee storage", e);
         }
+    }
 
-        return bean;
+    private void initializeTrainers() {
+        LOG.info("Initializing trainer storage");
+
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(trainerDataFilePath));
+
+            for (String line : lines) {
+                String[] fields = line.split(SEPARATOR);
+
+                Trainer trainer = new Trainer();
+                trainer.setFirstName(fields[0]);
+                trainer.setLastName(fields[1]);
+                trainer.setUsername(fields[2]);
+                trainer.setPassword(fields[3]);
+                trainer.setActive(Boolean.parseBoolean(fields[4]));
+                trainer.setSpecialization(TrainingType.valueOf(fields[5]));
+                trainer.setId(Long.valueOf(fields[6]));
+
+                trainerMap.put(trainer.getId(), trainer);
+            }
+
+            LOG.info("Trainer storage initialized: {} records", trainerMap.size());
+        } catch (IOException e) {
+            throw new StorageInitializerException("Failed to initialize trainer storage", e);
+        }
+    }
+
+    private void initializeTrainings() {
+        LOG.info("Initializing training storage");
+
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(trainingDataFilePath));
+
+            for (String line : lines) {
+                String[] fields = line.split(SEPARATOR);
+                Training training = new Training();
+                training.setTraineeId(Long.valueOf(fields[0]));
+                training.setTrainerId(Long.valueOf(fields[1]));
+                training.setTrainingName(fields[2]);
+                training.setTrainingType(TrainingType.valueOf(fields[3]));
+                training.setTrainingDate(LocalDate.parse(fields[4]));
+                training.setTrainingDuration(Duration.parse(fields[5]));
+                training.setId(Long.valueOf(fields[6]));
+
+                trainingMap.put(training.getId(), training);
+            }
+
+            LOG.info("Training storage initialized: {} records", trainingMap.size());
+        } catch (IOException e) {
+            throw new StorageInitializerException("Failed to initialize training storage", e);
+        }
     }
 }

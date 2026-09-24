@@ -1,11 +1,15 @@
 package com.epam.service;
 
-import com.epam.object.Training;
+import com.epam.domain.Training;
 import com.epam.repository.TrainingDao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,10 +21,9 @@ public class TrainingServiceTest {
 
     @BeforeEach
     public void setUp() {
-        trainingService = new TrainingService();
-
         trainingDao = mock(TrainingDao.class);
 
+        trainingService = new TrainingService();
         trainingService.setTrainingDao(trainingDao);
     }
 
@@ -28,26 +31,38 @@ public class TrainingServiceTest {
     public void shouldAddTraining() {
         Training training = generateTraining();
 
-        when(trainingDao.addTraining(training)).thenReturn(training);
+        when(trainingDao.add(training)).thenReturn(training);
 
-        Training result = trainingService.addTraining(training);
+        Training result = trainingService.add(training);
 
         assertSame(training, result);
 
-        verify(trainingDao).addTraining(training);
+        verify(trainingDao).add(training);
     }
 
     @Test
     public void shouldGetTraining() {
         Training training = generateTraining();
 
-        when(trainingDao.getTraining(1L)).thenReturn(training);
+        when(trainingDao.get(1L)).thenReturn(training);
 
-        Training result = trainingService.getTraining(1L);
+        Optional<Training> result = trainingService.get(1L);
 
-        assertSame(training, result);
+        assertTrue(result.isPresent());
+        assertSame(training, result.get());
 
-        verify(trainingDao).getTraining(1L);
+        verify(trainingDao).get(1L);
+    }
+
+    @Test
+    public void shouldReturnEmptyWhenTrainingDoesNotExist() {
+        when(trainingDao.get(1L)).thenReturn(null);
+
+        Optional<Training> result = trainingService.get(1L);
+
+        assertFalse(result.isPresent());
+
+        verify(trainingDao).get(1L);
     }
 
     private Training generateTraining() {

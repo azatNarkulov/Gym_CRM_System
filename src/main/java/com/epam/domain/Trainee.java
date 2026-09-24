@@ -1,4 +1,4 @@
-package com.epam.object;
+package com.epam.domain;
 
 import lombok.Data;
 
@@ -8,5 +8,4 @@ import java.time.LocalDate;
 public class Trainee extends User {
     private LocalDate dateOfBirth;
     private String address;
-    private Long userId;
 }

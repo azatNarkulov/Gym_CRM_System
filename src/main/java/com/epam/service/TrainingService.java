@@ -1,16 +1,18 @@
 package com.epam.service;
 
-import com.epam.object.Training;
+import com.epam.domain.Training;
 import com.epam.repository.TrainingDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class TrainingService {
 
-    private static final Logger log = LoggerFactory.getLogger(TrainingService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TrainingService.class);
 
     private TrainingDao trainingDao;
 
@@ -19,15 +21,15 @@ public class TrainingService {
         this.trainingDao = trainingDao;
     }
 
-    public Training addTraining(Training training) {
-        log.info("Creating training: name={}", training.getTrainingName());
+    public Training add(Training training) {
+        LOG.info("Creating training: name={}", training.getTrainingName());
 
-        return trainingDao.addTraining(training);
+        return trainingDao.add(training);
     }
 
-    public Training getTraining(Long trainingId) {
-        log.debug("Getting training: id={}", trainingId);
+    public Optional<Training> get(Long id) {
+        LOG.debug("Getting training: id={}", id);
 
-        return trainingDao.getTraining(trainingId);
+        return Optional.ofNullable(trainingDao.get(id));
     }
 }

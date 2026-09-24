@@ -1,6 +1,6 @@
 package com.epam.repository;
 
-import com.epam.object.Trainee;
+import com.epam.domain.Trainee;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,43 +27,48 @@ public class TraineeDaoTest {
     public void shouldAddTrainee() {
         Trainee trainee = generateTrainee();
 
-        Trainee result = traineeDao.addTrainee(trainee);
+        Trainee result = traineeDao.add(trainee);
 
-        assertNotNull(result.getUserId());
-        assertEquals(1L, result.getUserId());
+        assertNotNull(result.getId());
+        assertEquals(1L, result.getId());
         assertSame(trainee, result);
     }
 
     @Test
     public void shouldUpdateTrainee() {
         Trainee trainee = generateTrainee();
-
-        traineeDao.addTrainee(trainee);
+        traineeDao.add(trainee);
 
         trainee.setFirstName("Frodo");
 
-        Trainee result = traineeDao.updateTrainee(trainee);
+        Trainee result = traineeDao.update(trainee);
 
         assertEquals("Frodo", result.getFirstName());
-        assertSame(trainee, traineeDao.getTrainee(1L));
+        assertSame(trainee, traineeDao.get(1L));
     }
 
     @Test
     public void shouldDeleteTrainee() {
         Trainee trainee = generateTrainee();
-        traineeDao.addTrainee(trainee);
+        traineeDao.add(trainee);
 
-        traineeDao.deleteTrainee(1L);
+        boolean result = traineeDao.delete(1L);
 
-        assertNull(traineeDao.getTrainee(1L));
+        assertTrue(result);
+        assertNull(traineeDao.get(1L));
+    }
+
+    @Test
+    public void shouldReturnFalseWhenDeletingNonExistingTrainee() {
+        assertFalse(traineeDao.delete(1L));
     }
 
     @Test
     public void shouldGetTrainee() {
         Trainee trainee = generateTrainee();
-        traineeDao.addTrainee(trainee);
+        traineeDao.add(trainee);
 
-        Trainee result = traineeDao.getTrainee(1L);
+        Trainee result = traineeDao.get(1L);
 
         assertSame(trainee, result);
     }
@@ -71,7 +76,7 @@ public class TraineeDaoTest {
     @Test
     public void shouldFindExistingUsername() {
         Trainee trainee = generateTrainee();
-        traineeDao.addTrainee(trainee);
+        traineeDao.add(trainee);
 
         assertTrue(traineeDao.existsByUsername("Bilbo.Baggins"));
     }
@@ -84,13 +89,13 @@ public class TraineeDaoTest {
     @Test
     public void shouldGenerateNextId() {
         Trainee firstTrainee = generateTrainee();
-        traineeDao.addTrainee(firstTrainee);
+        traineeDao.add(firstTrainee);
 
         Trainee secondTrainee = generateTrainee();
-        traineeDao.addTrainee(secondTrainee);
+        traineeDao.add(secondTrainee);
 
-        assertEquals(1L, firstTrainee.getUserId());
-        assertEquals(2L, secondTrainee.getUserId());
+        assertEquals(1L, firstTrainee.getId());
+        assertEquals(2L, secondTrainee.getId());
     }
 
     private Trainee generateTrainee() {

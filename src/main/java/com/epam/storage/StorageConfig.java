@@ -1,8 +1,8 @@
 package com.epam.storage;
 
-import com.epam.object.Trainee;
-import com.epam.object.Trainer;
-import com.epam.object.Training;
+import com.epam.domain.Trainee;
+import com.epam.domain.Trainer;
+import com.epam.domain.Training;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;

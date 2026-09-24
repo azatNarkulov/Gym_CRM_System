@@ -1,6 +1,6 @@
 package com.epam.repository;
 
-import com.epam.object.Training;
+import com.epam.domain.Training;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -24,33 +24,33 @@ public class TrainingDaoTest {
     public void shouldAddTraining() {
         Training training = generateTraining();
 
-        Training result = trainingDao.addTraining(training);
+        Training result = trainingDao.add(training);
 
-        assertNotNull(result.getTrainingId());
-        assertEquals(1L, result.getTrainingId());
+        assertNotNull(result.getId());
+        assertEquals(1L, result.getId());
         assertSame(training, result);
     }
 
     @Test
     public void shouldGetTraining() {
         Training training = generateTraining();
-        trainingDao.addTraining(training);
+        trainingDao.add(training);
 
-        Training result = trainingDao.getTraining(1L);
+        Training result = trainingDao.get(1L);
 
         assertSame(training, result);
     }
 
     @Test
     public void shouldGenerateNextId() {
-        Training firsttraining = generateTraining();
-        trainingDao.addTraining(firsttraining);
+        Training firstTraining = generateTraining();
+        trainingDao.add(firstTraining);
 
-        Training secondtraining = generateTraining();
-        trainingDao.addTraining(secondtraining);
+        Training secondTraining = generateTraining();
+        trainingDao.add(secondTraining);
 
-        assertEquals(1L, firsttraining.getTrainingId());
-        assertEquals(2L, secondtraining.getTrainingId());
+        assertEquals(1L, firstTraining.getId());
+        assertEquals(2L, secondTraining.getId());
     }
 
     private Training generateTraining() {

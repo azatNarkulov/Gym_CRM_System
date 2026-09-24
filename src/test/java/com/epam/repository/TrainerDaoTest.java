@@ -1,6 +1,6 @@
 package com.epam.repository;
 
-import com.epam.object.Trainer;
+import com.epam.domain.Trainer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,33 +26,32 @@ public class TrainerDaoTest {
     public void shouldAddTrainer() {
         Trainer trainer = generateTrainer();
 
-        Trainer result = trainerDao.addTrainer(trainer);
+        Trainer result = trainerDao.add(trainer);
 
-        assertNotNull(result.getUserId());
-        assertEquals(1L, result.getUserId());
+        assertNotNull(result.getId());
+        assertEquals(1L, result.getId());
         assertSame(trainer, result);
     }
 
     @Test
     public void shouldUpdateTrainer() {
         Trainer trainer = generateTrainer();
-
-        trainerDao.addTrainer(trainer);
+        trainerDao.add(trainer);
 
         trainer.setFirstName("Frodo");
 
-        Trainer result = trainerDao.updateTrainer(trainer);
+        Trainer result = trainerDao.update(trainer);
 
         assertEquals("Frodo", result.getFirstName());
-        assertSame(trainer, trainerDao.getTrainer(1L));
+        assertSame(trainer, trainerDao.get(1L));
     }
 
     @Test
     public void shouldGetTrainer() {
         Trainer trainer = generateTrainer();
-        trainerDao.addTrainer(trainer);
+        trainerDao.add(trainer);
 
-        Trainer result = trainerDao.getTrainer(1L);
+        Trainer result = trainerDao.get(1L);
 
         assertSame(trainer, result);
     }
@@ -60,7 +59,7 @@ public class TrainerDaoTest {
     @Test
     public void shouldFindExistingUsername() {
         Trainer trainer = generateTrainer();
-        trainerDao.addTrainer(trainer);
+        trainerDao.add(trainer);
 
         assertTrue(trainerDao.existsByUsername("Bilbo.Baggins"));
     }
@@ -72,14 +71,14 @@ public class TrainerDaoTest {
 
     @Test
     public void shouldGenerateNextId() {
-        Trainer firsttrainer = generateTrainer();
-        trainerDao.addTrainer(firsttrainer);
+        Trainer firstTrainer = generateTrainer();
+        trainerDao.add(firstTrainer);
 
-        Trainer secondtrainer = generateTrainer();
-        trainerDao.addTrainer(secondtrainer);
+        Trainer secondTrainer = generateTrainer();
+        trainerDao.add(secondTrainer);
 
-        assertEquals(1L, firsttrainer.getUserId());
-        assertEquals(2L, secondtrainer.getUserId());
+        assertEquals(1L, firstTrainer.getId());
+        assertEquals(2L, secondTrainer.getId());
     }
 
     private Trainer generateTrainer() {

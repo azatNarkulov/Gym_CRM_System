@@ -1,6 +1,6 @@
 package com.epam.util;
 
-import com.epam.object.User;
+import com.epam.domain.User;
 import com.epam.repository.TraineeDao;
 import com.epam.repository.TrainerDao;
 import org.slf4j.Logger;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class UsernameGenerator {
 
-    private static final Logger log = LoggerFactory.getLogger(UsernameGenerator.class);
+    private static final Logger LOG = LoggerFactory.getLogger(UsernameGenerator.class);
 
     private TraineeDao traineeDao;
     private TrainerDao trainerDao;
@@ -28,23 +28,22 @@ public class UsernameGenerator {
 
     public String generate(User user) {
 
-        String baseUserName = user.getFirstName() + "." + user.getLastName();
+        String baseUsername = user.getFirstName() + "." + user.getLastName();
+        String username;
 
-        if (!isUsernameExists(baseUserName)) {
-            log.debug("Generated username: {}", baseUserName);
-            return baseUserName;
+        if (!isUsernameExists(baseUsername)) {
+            username = baseUsername;
+        } else {
+            int serialNumber = 1;
+
+            while (isUsernameExists(baseUsername + serialNumber)) {
+                serialNumber++;
+            }
+
+            username = baseUsername + serialNumber;
         }
 
-        int serialNumber = 1;
-
-        while (isUsernameExists(baseUserName + serialNumber)) {
-            serialNumber++;
-        }
-
-        String username = baseUserName + serialNumber;
-
-        log.debug("Generated username with suffix: {}", username);
-
+        LOG.debug("Generated username: {}", username);
         return username;
     }
 

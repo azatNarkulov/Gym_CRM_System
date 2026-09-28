@@ -1,15 +1,12 @@
 package com.epam.service;
 
 import com.epam.domain.Trainer;
-import com.epam.repository.TrainerDao;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-@Service
-public class TrainerService extends AbstractUserService<Trainer> {
+import java.util.Optional;
 
-    @Autowired
-    public void setTrainerDao(TrainerDao trainerDao) {
-        this.userDao = trainerDao;
-    }
+public interface TrainerService {
+
+    Trainer add(Trainer trainer);
+    Trainer update(Trainer trainer);
+    Optional<Trainer> get(Long id);
 }

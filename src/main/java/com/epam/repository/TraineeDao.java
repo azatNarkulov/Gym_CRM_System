@@ -20,9 +20,9 @@ public class TraineeDao extends AbstractUserDao<Trainee> {
     }
 
     public boolean delete(Long id) {
-        boolean removed = storage.remove(id) != null;
+        boolean removed = getStorage().remove(id) != null;
 
-        LOG.info("Trainee deleted: id={}, removed={}", id, removed);
+        LOG.debug("Trainee deleted: id={}, removed={}", id, removed);
         return removed;
     }
 }

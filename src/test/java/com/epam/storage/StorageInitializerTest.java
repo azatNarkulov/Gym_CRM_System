@@ -4,12 +4,14 @@ import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
 import com.epam.domain.Training;
 import com.epam.domain.TrainingType;
+import com.epam.repository.TraineeDao;
+import com.epam.repository.TrainerDao;
+import com.epam.repository.TrainingDao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -35,19 +37,28 @@ public class StorageInitializerTest {
         trainerMap = new HashMap<>();
         trainingMap = new HashMap<>();
 
+        TraineeDao traineeDao = new TraineeDao();
+        traineeDao.setTraineeMap(traineeMap);
+
+        TrainerDao trainerDao = new TrainerDao();
+        trainerDao.setTrainerMap(trainerMap);
+
+        TrainingDao trainingDao = new TrainingDao();
+        trainingDao.setTrainingMap(trainingMap);
+
         storageInitializer = new StorageInitializer();
-        storageInitializer.setTraineeMap(traineeMap);
-        storageInitializer.setTrainerMap(trainerMap);
-        storageInitializer.setTrainingMap(trainingMap);
+        storageInitializer.setTraineeDao(traineeDao);
+        storageInitializer.setTrainerDao(trainerDao);
+        storageInitializer.setTrainingDao(trainingDao);
     }
 
     @Test
     public void shouldInitializeTrainees(@TempDir Path tempDir) throws Exception {
         Path file = createFile(tempDir, "trainee.csv", "Ivan;Trainee;Ivan.Trainee;password12;true;2000-12-14;Moscow Street 191;1");
 
-        setField("traineeDataFilePath", file.toString());
-        setField("trainerDataFilePath", createFile(tempDir, "trainer.csv", "").toString());
-        setField("trainingDataFilePath", createFile(tempDir, "training.csv", "").toString());
+        storageInitializer.setTraineeDataFilePath(file.toString());
+        storageInitializer.setTrainerDataFilePath(createFile(tempDir, "trainer.csv", "").toString());
+        storageInitializer.setTrainingDataFilePath(createFile(tempDir, "training.csv", "").toString());
 
         storageInitializer.initialize();
 
@@ -70,9 +81,9 @@ public class StorageInitializerTest {
     public void shouldInitializeTrainers(@TempDir Path tempDir) throws Exception {
         Path file = createFile(tempDir, "trainer.csv", "Remy;Trainer;Remy.Trainer;password23;true;STRETCHING;1");
 
-        setField("traineeDataFilePath", createFile(tempDir, "trainee.csv", "").toString());
-        setField("trainerDataFilePath", file.toString());
-        setField("trainingDataFilePath", createFile(tempDir, "training.csv", "").toString());
+        storageInitializer.setTraineeDataFilePath(createFile(tempDir, "trainee.csv", "").toString());
+        storageInitializer.setTrainerDataFilePath(file.toString());
+        storageInitializer.setTrainingDataFilePath(createFile(tempDir, "training.csv", "").toString());
 
         storageInitializer.initialize();
 
@@ -94,9 +105,9 @@ public class StorageInitializerTest {
     public void shouldInitializeTrainings(@TempDir Path tempDir) throws Exception {
         Path file = createFile(tempDir, "training.csv", "1;1;Saturday Stretching;STRETCHING;2026-09-19;PT1H;1");
 
-        setField("traineeDataFilePath", createFile(tempDir, "trainee.csv", "").toString());
-        setField("trainerDataFilePath", createFile(tempDir, "trainer.csv", "").toString());
-        setField("trainingDataFilePath", file.toString());
+        storageInitializer.setTraineeDataFilePath(createFile(tempDir, "trainee.csv", "").toString());
+        storageInitializer.setTrainerDataFilePath(createFile(tempDir, "trainer.csv", "").toString());
+        storageInitializer.setTrainingDataFilePath(file.toString());
 
         storageInitializer.initialize();
 
@@ -118,11 +129,5 @@ public class StorageInitializerTest {
         Path file = tempDir.resolve(fileName);
         Files.write(file, content.getBytes());
         return file;
-    }
-
-    private void setField(String fieldName, String value) throws Exception {
-        Field field = StorageInitializer.class.getDeclaredField(fieldName);
-        field.setAccessible(true);
-        field.set(storageInitializer, value);
     }
 }

@@ -23,8 +23,9 @@ public class TrainingServiceTest {
     public void setUp() {
         trainingDao = mock(TrainingDao.class);
 
-        trainingService = new TrainingService();
-        trainingService.setTrainingDao(trainingDao);
+        TrainingServiceImpl trainingServiceImpl = new TrainingServiceImpl();
+        trainingServiceImpl.setTrainingDao(trainingDao);
+        trainingService = trainingServiceImpl;
     }
 
     @Test

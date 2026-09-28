@@ -16,8 +16,9 @@ public class TrainingDaoTest {
 
     @BeforeEach
     public void setUp() {
-        trainingDao = new TrainingDao();
+        TrainingDao trainingDao = new TrainingDao();
         trainingDao.setTrainingMap(new HashMap<>());
+        this.trainingDao = trainingDao;
     }
 
     @Test

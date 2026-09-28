@@ -5,11 +5,13 @@ import com.epam.domain.TrainingType;
 import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
 import com.epam.domain.Training;
+import com.epam.repository.TraineeDao;
+import com.epam.repository.TrainerDao;
+import com.epam.repository.TrainingDao;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +21,6 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 @Component
 public class StorageInitializer {
@@ -32,9 +33,9 @@ public class StorageInitializer {
     private String trainerDataFilePath;
     private String trainingDataFilePath;
 
-    private Map<Long, Trainee> traineeMap;
-    private Map<Long, Trainer> trainerMap;
-    private Map<Long, Training> trainingMap;
+    private TraineeDao traineeDao;
+    private TrainerDao trainerDao;
+    private TrainingDao trainingDao;
 
     @Value("${trainee.data.file.path}")
     public void setTraineeDataFilePath(String traineeDataFilePath) {
@@ -52,18 +53,18 @@ public class StorageInitializer {
     }
 
     @Autowired
-    public void setTraineeMap(@Qualifier("traineeMap") Map<Long, Trainee> traineeMap) {
-        this.traineeMap = traineeMap;
+    public void setTraineeDao(TraineeDao traineeDao) {
+        this.traineeDao = traineeDao;
     }
 
     @Autowired
-    public void setTrainerMap(@Qualifier("trainerMap") Map<Long, Trainer> trainerMap) {
-        this.trainerMap = trainerMap;
+    public void setTrainerDao(TrainerDao trainerDao) {
+        this.trainerDao = trainerDao;
     }
 
     @Autowired
-    public void setTrainingMap(@Qualifier("trainingMap") Map<Long, Training> trainingMap) {
-        this.trainingMap = trainingMap;
+    public void setTrainingDao(TrainingDao trainingDao) {
+        this.trainingDao = trainingDao;
     }
 
     @PostConstruct
@@ -92,10 +93,10 @@ public class StorageInitializer {
                 trainee.setAddress(fields[6]);
                 trainee.setId(Long.valueOf(fields[7]));
 
-                traineeMap.put(trainee.getId(), trainee);
+                traineeDao.add(trainee);
             }
 
-            LOG.info("Trainee storage initialized: {} records", traineeMap.size());
+            LOG.info("Trainee storage initialized");
         } catch (IOException e) {
             throw new StorageInitializerException("Failed to initialize trainee storage", e);
         }
@@ -119,10 +120,10 @@ public class StorageInitializer {
                 trainer.setSpecialization(TrainingType.valueOf(fields[5]));
                 trainer.setId(Long.valueOf(fields[6]));
 
-                trainerMap.put(trainer.getId(), trainer);
+                trainerDao.add(trainer);
             }
 
-            LOG.info("Trainer storage initialized: {} records", trainerMap.size());
+            LOG.info("Trainer storage initialized");
         } catch (IOException e) {
             throw new StorageInitializerException("Failed to initialize trainer storage", e);
         }
@@ -145,10 +146,10 @@ public class StorageInitializer {
                 training.setTrainingDuration(Duration.parse(fields[5]));
                 training.setId(Long.valueOf(fields[6]));
 
-                trainingMap.put(training.getId(), training);
+                trainingDao.add(training);
             }
 
-            LOG.info("Training storage initialized: {} records", trainingMap.size());
+            LOG.info("Training storage initialized");
         } catch (IOException e) {
             throw new StorageInitializerException("Failed to initialize training storage", e);
         }

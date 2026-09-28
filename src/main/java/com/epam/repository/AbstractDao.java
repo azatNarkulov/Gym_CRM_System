@@ -10,18 +10,26 @@ public abstract class AbstractDao<T extends BaseEntity> {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractDao.class);
 
-    protected Map<Long, T> storage;
+    private Map<Long, T> storage;
+
+    protected Map<Long, T> getStorage() {
+        return storage;
+    }
 
     protected void setStorage(Map<Long, T> storage) {
         this.storage = storage;
     }
 
     public T add(T entity) {
-        Long id = generateId();
-        entity.setId(id);
+        Long id = entity.getId();
+        if (id == null) {
+            id = generateId();
+            entity.setId(id);
+        }
+
         storage.put(id, entity);
 
-        LOG.info("Adding entity with id={}", id);
+        LOG.debug("Adding entity with id={}", id);
         return entity;
     }
 

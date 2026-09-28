@@ -1,4 +1,4 @@
-package com.epam.util;
+package com.epam.service;
 
 import com.epam.domain.Trainee;
 import com.epam.repository.TraineeDao;
@@ -7,13 +7,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class UsernameGeneratorTest {
+public class UserCredentialsServiceTest {
 
-    private UsernameGenerator usernameGenerator;
+    private UserCredentialsService userCredentialsService;
     private TraineeDao traineeDao;
     private TrainerDao trainerDao;
 
@@ -22,9 +24,26 @@ public class UsernameGeneratorTest {
         traineeDao = mock(TraineeDao.class);
         trainerDao = mock(TrainerDao.class);
 
-        usernameGenerator = new UsernameGenerator();
-        usernameGenerator.setTraineeDao(traineeDao);
-        usernameGenerator.setTrainerDao(trainerDao);
+        UserCredentialsServiceImpl userCredentialsServiceImpl = new UserCredentialsServiceImpl();
+        userCredentialsServiceImpl.setTraineeDao(traineeDao);
+        userCredentialsServiceImpl.setTrainerDao(trainerDao);
+        userCredentialsService = userCredentialsServiceImpl;
+    }
+
+    @Test
+    public void shouldGeneratePasswordWithCorrectLength() {
+        String password = userCredentialsService.generatePassword();
+
+        assertNotNull(password);
+        assertEquals(10, password.length());
+    }
+
+    @Test
+    public void shouldGenerateDifferentPasswords() {
+        String firstPassword = userCredentialsService.generatePassword();
+        String secondPassword = userCredentialsService.generatePassword();
+
+        assertNotEquals(firstPassword, secondPassword);
     }
 
     @Test
@@ -34,7 +53,7 @@ public class UsernameGeneratorTest {
         when(traineeDao.existsByUsername("Bilbo.Baggins")).thenReturn(false);
         when(trainerDao.existsByUsername("Bilbo.Baggins")).thenReturn(false);
 
-        String result = usernameGenerator.generate(trainee);
+        String result = userCredentialsService.generateUsername(trainee);
 
         assertEquals("Bilbo.Baggins", result);
 
@@ -49,7 +68,7 @@ public class UsernameGeneratorTest {
         when(traineeDao.existsByUsername("Bilbo.Baggins")).thenReturn(true);
         when(traineeDao.existsByUsername("Bilbo.Baggins1")).thenReturn(false);
 
-        String result = usernameGenerator.generate(trainee);
+        String result = userCredentialsService.generateUsername(trainee);
 
         assertEquals("Bilbo.Baggins1", result);
     }
@@ -60,10 +79,9 @@ public class UsernameGeneratorTest {
 
         when(traineeDao.existsByUsername("Bilbo.Baggins")).thenReturn(false);
         when(trainerDao.existsByUsername("Bilbo.Baggins")).thenReturn(true);
-
         when(traineeDao.existsByUsername("Bilbo.Baggins1")).thenReturn(false);
 
-        String result = usernameGenerator.generate(trainee);
+        String result = userCredentialsService.generateUsername(trainee);
 
         assertEquals("Bilbo.Baggins1", result);
     }

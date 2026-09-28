@@ -9,16 +9,16 @@ public abstract class AbstractUserDao<T extends User> extends AbstractDao<T> {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractUserDao.class);
 
     public T update(T user) {
-        storage.put(user.getId(), user);
+        getStorage().put(user.getId(), user);
 
-        LOG.info("User updated: id={}, username={}", user.getId(), user.getUsername());
+        LOG.debug("User updated: id={}, username={}", user.getId(), user.getUsername());
         return user;
     }
 
     public boolean existsByUsername(String username) {
         LOG.debug("Checking username: {}", username);
 
-        return storage.values().stream()
+        return getStorage().values().stream()
                 .anyMatch(user -> username.equals(user.getUsername()));
     }
 

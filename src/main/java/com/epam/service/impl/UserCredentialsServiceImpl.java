@@ -1,8 +1,9 @@
-package com.epam.service;
+package com.epam.service.impl;
 
 import com.epam.domain.User;
 import com.epam.repository.TraineeDao;
 import com.epam.repository.TrainerDao;
+import com.epam.service.UserCredentialsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,18 +22,11 @@ public class UserCredentialsServiceImpl implements UserCredentialsService {
 
     private final Random random = new SecureRandom();
 
+    @Autowired
     private TraineeDao traineeDao;
+
+    @Autowired
     private TrainerDao trainerDao;
-
-    @Autowired
-    public void setTraineeDao(TraineeDao traineeDao) {
-        this.traineeDao = traineeDao;
-    }
-
-    @Autowired
-    public void setTrainerDao(TrainerDao trainerDao) {
-        this.trainerDao = trainerDao;
-    }
 
     @Override
     public String generatePassword() {

@@ -2,31 +2,29 @@ package com.epam.service;
 
 import com.epam.domain.Training;
 import com.epam.repository.TrainingDao;
-import org.junit.jupiter.api.BeforeEach;
+import com.epam.service.impl.TrainingServiceImpl;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class TrainingServiceTest {
 
-    private TrainingService trainingService;
+    @InjectMocks
+    private TrainingServiceImpl trainingService;
+
+    @Mock
     private TrainingDao trainingDao;
-
-    @BeforeEach
-    public void setUp() {
-        trainingDao = mock(TrainingDao.class);
-
-        TrainingServiceImpl trainingServiceImpl = new TrainingServiceImpl();
-        trainingServiceImpl.setTrainingDao(trainingDao);
-        trainingService = trainingServiceImpl;
-    }
 
     @Test
     public void shouldAddTraining() {

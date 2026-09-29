@@ -4,7 +4,13 @@ import com.epam.domain.Trainee;
 import com.epam.exception.UserNotFoundException;
 import com.epam.repository.TraineeDao;
 import org.junit.jupiter.api.BeforeEach;
+import com.epam.service.impl.TraineeServiceImpl;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -13,27 +19,25 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class TraineeServiceTest {
 
-    private TraineeService traineeService;
+    @InjectMocks
+    private TraineeServiceImpl traineeService;
+
+    @Mock
     private TraineeDao traineeDao;
+
+    @Mock
     private UserCredentialsService userCredentialsService;
 
     @BeforeEach
     public void setUp() {
-        traineeDao = mock(TraineeDao.class);
-        userCredentialsService = mock(UserCredentialsService.class);
-
-        TraineeServiceImpl traineeServiceImpl = new TraineeServiceImpl();
-        traineeServiceImpl.setTraineeDao(traineeDao);
-        traineeServiceImpl.setUserCredentialsService(userCredentialsService);
-
-        traineeService = traineeServiceImpl;
+        ReflectionTestUtils.setField(traineeService, "userDao", traineeDao);
     }
 
     @Test

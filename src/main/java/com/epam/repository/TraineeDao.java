@@ -14,9 +14,16 @@ public class TraineeDao extends AbstractUserDao<Trainee> {
 
     private static final Logger LOG = LoggerFactory.getLogger(TraineeDao.class);
 
+    private Map<Long, Trainee> storage;
+
     @Autowired
     public void setTraineeMap(@Qualifier("traineeMap") Map<Long, Trainee> traineeMap) {
-        setStorage(traineeMap);
+        this.storage = traineeMap;
+    }
+
+    @Override
+    protected Map<Long, Trainee> getStorage() {
+        return storage;
     }
 
     public boolean delete(Long id) {

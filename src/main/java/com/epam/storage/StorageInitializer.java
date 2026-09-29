@@ -93,7 +93,7 @@ public class StorageInitializer {
                 trainee.setAddress(fields[6]);
                 trainee.setId(Long.valueOf(fields[7]));
 
-                traineeDao.add(trainee);
+                traineeDao.load(trainee);
             }
 
             LOG.info("Trainee storage initialized");
@@ -120,7 +120,7 @@ public class StorageInitializer {
                 trainer.setSpecialization(TrainingType.valueOf(fields[5]));
                 trainer.setId(Long.valueOf(fields[6]));
 
-                trainerDao.add(trainer);
+                trainerDao.load(trainer);
             }
 
             LOG.info("Trainer storage initialized");
@@ -146,7 +146,7 @@ public class StorageInitializer {
                 training.setTrainingDuration(Duration.parse(fields[5]));
                 training.setId(Long.valueOf(fields[6]));
 
-                trainingDao.add(training);
+                trainingDao.load(training);
             }
 
             LOG.info("Training storage initialized");

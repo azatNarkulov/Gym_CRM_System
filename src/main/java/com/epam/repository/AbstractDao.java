@@ -10,24 +10,13 @@ public abstract class AbstractDao<T extends BaseEntity> {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractDao.class);
 
-    private Map<Long, T> storage;
-
-    protected Map<Long, T> getStorage() {
-        return storage;
-    }
-
-    protected void setStorage(Map<Long, T> storage) {
-        this.storage = storage;
-    }
+    protected abstract Map<Long, T> getStorage();
 
     public T add(T entity) {
-        Long id = entity.getId();
-        if (id == null) {
-            id = generateId();
-            entity.setId(id);
-        }
+        Long id = generateId();
+        entity.setId(id);
 
-        storage.put(id, entity);
+        getStorage().put(id, entity);
 
         LOG.debug("Adding entity with id={}", id);
         return entity;
@@ -35,11 +24,18 @@ public abstract class AbstractDao<T extends BaseEntity> {
 
     public T get(Long id) {
         LOG.debug("Searching for entity with id={}", id);
-        return storage.get(id);
+        return getStorage().get(id);
+    }
+
+    public T load(T entity) {
+        getStorage().put(entity.getId(), entity);
+
+        LOG.debug("Loading entity with id={}", entity.getId());
+        return entity;
     }
 
     protected Long generateId() {
-        return storage.keySet().stream()
+        return getStorage().keySet().stream()
                 .max(Long::compareTo)
                 .orElse(0L) + 1;
     }

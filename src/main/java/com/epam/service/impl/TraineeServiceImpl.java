@@ -1,7 +1,9 @@
-package com.epam.service;
+package com.epam.service.impl;
 
 import com.epam.domain.Trainee;
 import com.epam.repository.TraineeDao;
+import com.epam.service.AbstractUserService;
+import com.epam.service.TraineeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,13 +14,8 @@ public class TraineeServiceImpl extends AbstractUserService<Trainee> implements 
 
     private static final Logger LOG = LoggerFactory.getLogger(TraineeServiceImpl.class);
 
-    private TraineeDao traineeDao;
-
     @Autowired
-    public void setTraineeDao(TraineeDao traineeDao) {
-        this.traineeDao = traineeDao;
-        setUserDao(traineeDao);
-    }
+    private TraineeDao traineeDao;
 
     @Override
     public boolean delete(Long id) {

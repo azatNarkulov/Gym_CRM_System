@@ -10,8 +10,15 @@ import java.util.Map;
 @Repository
 public class TrainingDao extends AbstractDao<Training> {
 
+    private Map<Long, Training> storage;
+
     @Autowired
     public void setTrainingMap(@Qualifier("trainingMap") Map<Long, Training> trainingMap) {
-        setStorage(trainingMap);
+        this.storage = trainingMap;
+    }
+
+    @Override
+    protected Map<Long, Training> getStorage() {
+        return storage;
     }
 }

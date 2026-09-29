@@ -9,11 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Optional;
 
-public abstract class AbstractUserService<T extends User> {
+public abstract class AbstractUserService<T extends User> implements UserService<T> {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractUserService.class);
 
+    @Autowired
     private AbstractUserDao<T> userDao;
+
     private UserCredentialsService userCredentialsService;
 
     @Autowired
@@ -21,10 +23,7 @@ public abstract class AbstractUserService<T extends User> {
         this.userCredentialsService = userCredentialsService;
     }
 
-    protected void setUserDao(AbstractUserDao<T> userDao) {
-        this.userDao = userDao;
-    }
-
+    @Override
     public T add(T user) {
         LOG.info("Creating user: {} {}", user.getFirstName(), user.getLastName());
 
@@ -34,6 +33,7 @@ public abstract class AbstractUserService<T extends User> {
         return userDao.add(user);
     }
 
+    @Override
     public T update(T user) {
         LOG.info("Updating user: id={}", user.getId());
 
@@ -44,6 +44,7 @@ public abstract class AbstractUserService<T extends User> {
         return userDao.update(user);
     }
 
+    @Override
     public Optional<T> get(Long id) {
         return Optional.ofNullable(userDao.get(id));
     }

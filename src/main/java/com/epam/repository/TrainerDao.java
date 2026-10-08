@@ -1,24 +1,25 @@
 package com.epam.repository;
 
 import com.epam.domain.Trainer;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
-import java.util.Map;
+import java.util.List;
 
 @Repository
 public class TrainerDao extends AbstractUserDao<Trainer> {
 
-    private Map<Long, Trainer> storage;
-
-    @Autowired
-    public void setTrainerMap(@Qualifier("trainerMap") Map<Long, Trainer> trainerMap) {
-        this.storage = trainerMap;
-    }
+    private static final String QUERY_FIND_NOT_ASSIGNED_BY_TRAINEE =
+            "SELECT trainer FROM Trainer trainer WHERE trainer NOT IN (" +
+            "    SELECT trainer2 FROM Trainee trainee JOIN trainee.trainers trainer2 WHERE trainee.username = :username)";
 
     @Override
-    protected Map<Long, Trainer> getStorage() {
-        return storage;
+    protected Class<Trainer> getEntityClass() {
+        return Trainer.class;
+    }
+
+    public List<Trainer> findNotAssignedByTrainee(String traineeUsername) {
+        return entityManager.createQuery(QUERY_FIND_NOT_ASSIGNED_BY_TRAINEE, Trainer.class)
+                .setParameter("username", traineeUsername)
+                .getResultList();
     }
 }

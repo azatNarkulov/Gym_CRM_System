@@ -8,6 +8,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -20,6 +22,7 @@ public class Training extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trainee_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Trainee trainee;
 
     @ManyToOne(fetch = FetchType.LAZY)

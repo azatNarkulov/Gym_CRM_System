@@ -1,10 +1,10 @@
 package com.epam.facade;
 
+import com.epam.dto.TrainingFilterDTO;
 import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
 import com.epam.domain.Training;
 import com.epam.domain.TrainingTypeName;
-import com.epam.exception.AuthenticationException;
 import com.epam.service.TraineeService;
 import com.epam.service.TrainerService;
 import com.epam.service.TrainingService;
@@ -18,7 +18,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,54 +42,6 @@ public class GymFacadeTest {
     }
 
     @Test
-    public void shouldLoginAsTrainee() {
-        when(traineeService.matchCredentials("Bilbo.Baggins", "password12")).thenReturn(true);
-
-        gymFacade.login("Bilbo.Baggins", "password12");
-
-        gymFacade.getTraineeByUsername("Bilbo.Baggins");
-        verify(traineeService).findByUsername("Bilbo.Baggins");
-    }
-
-    @Test
-    public void shouldLoginAsTrainer() {
-        when(trainerService.matchCredentials("Bilbo.Baggins", "password12")).thenReturn(true);
-
-        gymFacade.login("Bilbo.Baggins", "password12");
-
-        gymFacade.getTrainerByUsername("Bilbo.Baggins");
-        verify(trainerService).findByUsername("Bilbo.Baggins");
-    }
-
-    @Test
-    public void shouldThrowExceptionForInvalidCredentials() {
-        when(traineeService.matchCredentials("Bilbo.Baggins", "password12")).thenReturn(false);
-        when(trainerService.matchCredentials("Bilbo.Baggins", "password12")).thenReturn(false);
-
-        assertThrows(AuthenticationException.class, () -> gymFacade.login("Bilbo.Baggins", "password12"));
-    }
-
-    @Test
-    public void shouldRequireAuthenticationForProtectedMethods() {
-        assertThrows(AuthenticationException.class, () -> gymFacade.getTraineeByUsername("Bilbo.Baggins"));
-        assertThrows(AuthenticationException.class, () -> gymFacade.updateTrainee(new Trainee()));
-        assertThrows(AuthenticationException.class, () -> gymFacade.deleteTrainee(1L));
-        assertThrows(AuthenticationException.class, () -> gymFacade.changeTraineePassword("Bilbo.Baggins", "password12"));
-        assertThrows(AuthenticationException.class, () -> gymFacade.activateTrainee("Bilbo.Baggins"));
-        assertThrows(AuthenticationException.class, () -> gymFacade.getTrainerByUsername("Bilbo.Baggins"));
-        assertThrows(AuthenticationException.class, () -> gymFacade.addTraining(null));
-    }
-
-    @Test
-    public void shouldRequireNewLoginAfterLogout() {
-        when(traineeService.matchCredentials("Bilbo.Baggins", "password12")).thenReturn(true);
-        gymFacade.login("Bilbo.Baggins", "password12");
-        gymFacade.logout();
-
-        assertThrows(AuthenticationException.class, () -> gymFacade.getTraineeByUsername("Bilbo.Baggins"));
-    }
-
-    @Test
     public void shouldAddTrainee() {
         Trainee trainee = new Trainee();
         when(traineeService.add(trainee)).thenReturn(trainee);
@@ -101,67 +52,56 @@ public class GymFacadeTest {
 
     @Test
     public void shouldUpdateTrainee() {
-        authenticate();
         Trainee trainee = new Trainee();
-        when(traineeService.update(trainee)).thenReturn(trainee);
+        when(traineeService.update("Bilbo.Baggins", "password12", trainee)).thenReturn(trainee);
 
-        assertSame(trainee, gymFacade.updateTrainee(trainee));
-        verify(traineeService).update(trainee);
+        assertSame(trainee, gymFacade.updateTrainee("Bilbo.Baggins", "password12", trainee));
+        verify(traineeService).update("Bilbo.Baggins", "password12", trainee);
     }
 
     @Test
     public void shouldGetTraineeByUsername() {
-        authenticate();
         Trainee trainee = new Trainee();
-        when(traineeService.findByUsername("Bilbo.Baggins")).thenReturn(trainee);
+        when(traineeService.findByUsername("Bilbo.Baggins", "password12")).thenReturn(trainee);
 
-        assertSame(trainee, gymFacade.getTraineeByUsername("Bilbo.Baggins"));
-        verify(traineeService).findByUsername("Bilbo.Baggins");
-    }
-
-    @Test
-    public void shouldDeleteTraineeById() {
-        authenticate();
-        when(traineeService.delete(1L)).thenReturn(true);
-
-        assertTrue(gymFacade.deleteTrainee(1L));
-        verify(traineeService).delete(1L);
+        assertSame(trainee, gymFacade.getTraineeByUsername("Bilbo.Baggins", "password12"));
+        verify(traineeService).findByUsername("Bilbo.Baggins", "password12");
     }
 
     @Test
     public void shouldDeleteTraineeByUsername() {
-        authenticate();
-        when(traineeService.deleteByUsername("Bilbo.Baggins")).thenReturn(true);
+        String username = "Bilbo.Baggins";
+        String password = "password12";
+        when(traineeService.deleteByUsername(username, password)).thenReturn(true);
 
-        assertTrue(gymFacade.deleteTraineeByUsername("Bilbo.Baggins"));
-        verify(traineeService).deleteByUsername("Bilbo.Baggins");
+        assertTrue(gymFacade.deleteTraineeByUsername(username, password));
+        verify(traineeService).deleteByUsername(username, password);
     }
 
     @Test
     public void shouldChangeTraineePassword() {
-        authenticate();
-        gymFacade.changeTraineePassword("Bilbo.Baggins", "password99");
-        verify(traineeService).changePassword("Bilbo.Baggins", "password99");
+        gymFacade.changeTraineePassword("Bilbo.Baggins", "password12", "password99");
+        verify(traineeService).changePassword("Bilbo.Baggins", "password12", "password99");
     }
 
     @Test
     public void shouldActivateAndDeactivateTrainee() {
-        authenticate();
-        gymFacade.activateTrainee("Bilbo.Baggins");
-        gymFacade.deactivateTrainee("Bilbo.Baggins");
+        String username = "Bilbo.Baggins";
+        String password = "password12";
+        gymFacade.activateTrainee(username, password);
+        gymFacade.deactivateTrainee(username, password);
 
-        verify(traineeService).activate("Bilbo.Baggins");
-        verify(traineeService).deactivate("Bilbo.Baggins");
+        verify(traineeService).activate(username, password);
+        verify(traineeService).deactivate(username, password);
     }
 
     @Test
     public void shouldUpdateTraineeTrainers() {
-        authenticate();
         List<String> trainerUsernames = List.of("Frodo.Baggins", "Remy.Trainer");
 
-        gymFacade.updateTraineeTrainers("Bilbo.Baggins", trainerUsernames);
+        gymFacade.updateTraineeTrainers("Bilbo.Baggins", "password12", trainerUsernames);
 
-        verify(traineeService).updateTrainers("Bilbo.Baggins", trainerUsernames);
+        verify(traineeService).updateTrainers("Bilbo.Baggins", "password12", trainerUsernames);
     }
 
     @Test
@@ -175,93 +115,81 @@ public class GymFacadeTest {
 
     @Test
     public void shouldUpdateTrainer() {
-        authenticate();
         Trainer trainer = new Trainer();
-        when(trainerService.update(trainer)).thenReturn(trainer);
+        when(trainerService.update("Bilbo.Baggins", "password12", trainer)).thenReturn(trainer);
 
-        assertSame(trainer, gymFacade.updateTrainer(trainer));
-        verify(trainerService).update(trainer);
+        assertSame(trainer, gymFacade.updateTrainer("Bilbo.Baggins", "password12", trainer));
+        verify(trainerService).update("Bilbo.Baggins", "password12", trainer);
     }
 
     @Test
     public void shouldGetTrainerByUsername() {
-        authenticate();
         Trainer trainer = new Trainer();
-        when(trainerService.findByUsername("Bilbo.Baggins")).thenReturn(trainer);
+        when(trainerService.findByUsername("Bilbo.Baggins", "password12")).thenReturn(trainer);
 
-        assertSame(trainer, gymFacade.getTrainerByUsername("Bilbo.Baggins"));
-        verify(trainerService).findByUsername("Bilbo.Baggins");
+        assertSame(trainer, gymFacade.getTrainerByUsername("Bilbo.Baggins", "password12"));
+        verify(trainerService).findByUsername("Bilbo.Baggins", "password12");
     }
 
     @Test
     public void shouldChangeTrainerPassword() {
-        authenticate();
-        gymFacade.changeTrainerPassword("Bilbo.Baggins", "password99");
-        verify(trainerService).changePassword("Bilbo.Baggins", "password99");
+        gymFacade.changeTrainerPassword("Bilbo.Baggins", "password12", "password99");
+        verify(trainerService).changePassword("Bilbo.Baggins", "password12", "password99");
     }
 
     @Test
     public void shouldActivateAndDeactivateTrainer() {
-        authenticate();
-        gymFacade.activateTrainer("Bilbo.Baggins");
-        gymFacade.deactivateTrainer("Bilbo.Baggins");
+        gymFacade.activateTrainer("Bilbo.Baggins", "password12");
+        gymFacade.deactivateTrainer("Bilbo.Baggins", "password12");
 
-        verify(trainerService).activate("Bilbo.Baggins");
-        verify(trainerService).deactivate("Bilbo.Baggins");
+        verify(trainerService).activate("Bilbo.Baggins", "password12");
+        verify(trainerService).deactivate("Bilbo.Baggins", "password12");
     }
 
     @Test
     public void shouldGetTrainersNotAssignedToTrainee() {
-        authenticate();
         List<Trainer> trainers = List.of(new Trainer());
-        when(trainerService.getTrainersNotAssignedToTrainee("Bilbo.Baggins")).thenReturn(trainers);
+        when(trainerService.getTrainersNotAssignedToTrainee("Bilbo.Baggins", "password12")).thenReturn(trainers);
 
-        assertSame(trainers, gymFacade.getTrainersNotAssignedToTrainee("Bilbo.Baggins"));
-        verify(trainerService).getTrainersNotAssignedToTrainee("Bilbo.Baggins");
+        assertSame(trainers, gymFacade.getTrainersNotAssignedToTrainee("Bilbo.Baggins", "password12"));
+        verify(trainerService).getTrainersNotAssignedToTrainee("Bilbo.Baggins", "password12");
     }
 
     @Test
     public void shouldAddTraining() {
-        authenticate();
         Training training = new Training();
-        when(trainingService.add(training)).thenReturn(training);
+        when(trainingService.add("Bilbo.Baggins", "password12", training)).thenReturn(training);
 
-        assertSame(training, gymFacade.addTraining(training));
-        verify(trainingService).add(training);
+        assertSame(training, gymFacade.addTraining("Bilbo.Baggins", "password12", training));
+        verify(trainingService).add("Bilbo.Baggins", "password12", training);
     }
 
     @Test
     public void shouldGetTraineeTrainings() {
-        authenticate();
         LocalDate from = LocalDate.of(2026, 3, 3);
         LocalDate to = LocalDate.of(2026, 12, 14);
         List<Training> trainings = List.of(new Training());
+        TrainingFilterDTO filter = new TrainingFilterDTO("Bilbo.Baggins", from, to, "Trainer", TrainingTypeName.FITNESS);
 
-        when(trainingService.getTraineeTrainings("Bilbo.Baggins", from, to, "Trainer", TrainingTypeName.FITNESS))
-                .thenReturn(trainings);
+        when(trainingService.getTraineeTrainings("Bilbo.Baggins", "password12", filter)).thenReturn(trainings);
 
-        assertSame(trainings, gymFacade.getTraineeTrainings("Bilbo.Baggins", from, to, "Trainer", TrainingTypeName.FITNESS));
+        assertSame(trainings, gymFacade.getTraineeTrainings("Bilbo.Baggins", "password12", from, to, "Trainer", TrainingTypeName.FITNESS));
 
-        verify(trainingService).getTraineeTrainings("Bilbo.Baggins", from, to, "Trainer", TrainingTypeName.FITNESS);
+        verify(trainingService).getTraineeTrainings("Bilbo.Baggins", "password12", filter);
     }
 
     @Test
     public void shouldGetTrainerTrainings() {
-        authenticate();
         LocalDate from = LocalDate.of(2026, 3, 3);
         LocalDate to = LocalDate.of(2026, 12, 14);
         List<Training> trainings = List.of(new Training());
+        TrainingFilterDTO filter = new TrainingFilterDTO("Bilbo.Baggins", from, to, "Trainee", null);
 
-        when(trainingService.getTrainerTrainings("Bilbo.Baggins", from, to, "Trainee"))
+        when(trainingService.getTrainerTrainings("Bilbo.Baggins", "password12", filter))
                 .thenReturn(trainings);
 
-        assertSame(trainings, gymFacade.getTrainerTrainings("Bilbo.Baggins", from, to, "Trainee"));
+        assertSame(trainings, gymFacade.getTrainerTrainings("Bilbo.Baggins", "password12", from, to, "Trainee"));
 
-        verify(trainingService).getTrainerTrainings("Bilbo.Baggins", from, to, "Trainee");
-    }
-
-    private void authenticate() {
-        when(traineeService.matchCredentials("Bilbo.Baggins", "password12")).thenReturn(true);
-        gymFacade.login("Bilbo.Baggins", "password12");
+        verify(trainingService).getTrainerTrainings("Bilbo.Baggins", "password12", filter);
     }
 }

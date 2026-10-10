@@ -11,9 +11,7 @@ public abstract class AbstractDao<T extends BaseEntity> {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractDao.class);
 
     @PersistenceContext
-    protected EntityManager entityManager;
-
-    protected abstract Class<T> getEntityClass();
+    private EntityManager entityManager;
 
     public T add(T entity) {
         entityManager.persist(entity);
@@ -24,5 +22,11 @@ public abstract class AbstractDao<T extends BaseEntity> {
     public T get(Long id) {
         LOG.debug("Searching for entity with id={}", id);
         return entityManager.find(getEntityClass(), id);
+    }
+
+    protected abstract Class<T> getEntityClass();
+
+    protected EntityManager getEntityManager() {
+        return entityManager;
     }
 }

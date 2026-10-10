@@ -4,21 +4,33 @@ import com.epam.domain.User;
 
 import java.util.Optional;
 
-public interface UserService<T extends User> {
+public interface UserService {
 
-    T add(T user);
+    User add(User user);
 
-    Optional<T> get(Long id);
+    Optional<User> get(Long id);
 
-    T update(T user);
+    User update(String username, String password, User user);
 
-    T findByUsername(String username);
+    User updateInternal(User user);
 
-    void changePassword(String username, String newPassword);
+    User findByUsername(String username, String password);
 
-    void activate(String username);
+    User findByUsernameInternal(String username);
 
-    void deactivate(String username);
+    void changePassword(String username, String oldPassword, String newPassword);
+
+    void activate(String username, String password);
+
+    void deactivate(String username, String password);
 
     boolean matchCredentials(String username, String password);
+
+    boolean matchPasswordOnly(String username, String password);
+
+    void checkCredentials(String username, String password);
+
+    String generatePassword();
+
+    String generateUsername(User user);
 }

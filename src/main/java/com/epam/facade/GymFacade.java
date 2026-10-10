@@ -1,10 +1,10 @@
 package com.epam.facade;
 
+import com.epam.dto.TrainingFilterDTO;
 import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
 import com.epam.domain.Training;
 import com.epam.domain.TrainingTypeName;
-import com.epam.exception.AuthenticationException;
 import com.epam.service.TraineeService;
 import com.epam.service.TrainerService;
 import com.epam.service.TrainingService;
@@ -20,122 +20,83 @@ public class GymFacade {
     private final TrainerService trainerService;
     private final TrainingService trainingService;
 
-    private String currentUsername;
-
     public GymFacade(TraineeService traineeService, TrainerService trainerService, TrainingService trainingService) {
         this.traineeService = traineeService;
         this.trainerService = trainerService;
         this.trainingService = trainingService;
     }
 
-    public void login(String username, String password) {
-        if (traineeService.matchCredentials(username, password) || trainerService.matchCredentials(username, password)) {
-            this.currentUsername = username;
-        } else {
-            throw new AuthenticationException("Invalid credentials");
-        }
-    }
-
-    public void logout() {
-        this.currentUsername = null;
-    }
-
     public Trainee addTrainee(Trainee trainee) {
         return traineeService.add(trainee);
     }
 
-    public Trainee updateTrainee(Trainee trainee) {
-        checkAuthentication();
-        return traineeService.update(trainee);
+    public Trainee updateTrainee(String username, String password, Trainee trainee) {
+        return traineeService.update(username, password, trainee);
     }
 
-    public boolean deleteTrainee(Long id) {
-        checkAuthentication();
-        return traineeService.delete(id);
+    public Trainee getTraineeByUsername(String username, String password) {
+        return traineeService.findByUsername(username, password);
     }
 
-    public Trainee getTraineeByUsername(String username) {
-        checkAuthentication();
-        return traineeService.findByUsername(username);
+    public void changeTraineePassword(String username, String oldPassword, String newPassword) {
+        traineeService.changePassword(username, oldPassword, newPassword);
     }
 
-    public void changeTraineePassword(String username, String newPassword) {
-        checkAuthentication();
-        traineeService.changePassword(username, newPassword);
+    public void activateTrainee(String username, String password) {
+        traineeService.activate(username, password);
     }
 
-    public void activateTrainee(String username) {
-        checkAuthentication();
-        traineeService.activate(username);
+    public void deactivateTrainee(String username, String password) {
+        traineeService.deactivate(username, password);
     }
 
-    public void deactivateTrainee(String username) {
-        checkAuthentication();
-        traineeService.deactivate(username);
+    public boolean deleteTraineeByUsername(String username, String password) {
+        return traineeService.deleteByUsername(username, password);
     }
 
-    public boolean deleteTraineeByUsername(String username) {
-        checkAuthentication();
-        return traineeService.deleteByUsername(username);
-    }
-
-    public void updateTraineeTrainers(String traineeUsername, List<String> trainerUsernames) {
-        checkAuthentication();
-        traineeService.updateTrainers(traineeUsername, trainerUsernames);
+    public void updateTraineeTrainers(String traineeUsername, String password, List<String> trainerUsernames) {
+        traineeService.updateTrainers(traineeUsername, password, trainerUsernames);
     }
 
     public Trainer addTrainer(Trainer trainer) {
         return trainerService.add(trainer);
     }
 
-    public Trainer updateTrainer(Trainer trainer) {
-        checkAuthentication();
-        return trainerService.update(trainer);
+    public Trainer updateTrainer(String username, String password, Trainer trainer) {
+        return trainerService.update(username, password, trainer);
     }
 
-    public Trainer getTrainerByUsername(String username) {
-        checkAuthentication();
-        return trainerService.findByUsername(username);
+    public Trainer getTrainerByUsername(String username, String password) {
+        return trainerService.findByUsername(username, password);
     }
 
-    public void changeTrainerPassword(String username, String newPassword) {
-        checkAuthentication();
-        trainerService.changePassword(username, newPassword);
+    public void changeTrainerPassword(String username, String oldPassword, String newPassword) {
+        trainerService.changePassword(username, oldPassword, newPassword);
     }
 
-    public void activateTrainer(String username) {
-        checkAuthentication();
-        trainerService.activate(username);
+    public void activateTrainer(String username, String password) {
+        trainerService.activate(username, password);
     }
 
-    public void deactivateTrainer(String username) {
-        checkAuthentication();
-        trainerService.deactivate(username);
+    public void deactivateTrainer(String username, String password) {
+        trainerService.deactivate(username, password);
     }
 
-    public List<Trainer> getTrainersNotAssignedToTrainee(String traineeUsername) {
-        checkAuthentication();
-        return trainerService.getTrainersNotAssignedToTrainee(traineeUsername);
+    public List<Trainer> getTrainersNotAssignedToTrainee(String traineeUsername, String password) {
+        return trainerService.getTrainersNotAssignedToTrainee(traineeUsername, password);
     }
 
-    public Training addTraining(Training training) {
-        checkAuthentication();
-        return trainingService.add(training);
+    public Training addTraining(String username, String password, Training training) {
+        return trainingService.add(username, password, training);
     }
 
-    public List<Training> getTraineeTrainings(String username, LocalDate from, LocalDate to, String trainerName, TrainingTypeName type) {
-        checkAuthentication();
-        return trainingService.getTraineeTrainings(username, from, to, trainerName, type);
+    public List<Training> getTraineeTrainings(String username, String password, LocalDate from, LocalDate to, String trainerName, TrainingTypeName type) {
+        TrainingFilterDTO filter = new TrainingFilterDTO(username, from, to, trainerName, type);
+        return trainingService.getTraineeTrainings(username, password, filter);
     }
 
-    public List<Training> getTrainerTrainings(String username, LocalDate from, LocalDate to, String traineeName) {
-        checkAuthentication();
-        return trainingService.getTrainerTrainings(username, from, to, traineeName);
-    }
-
-    private void checkAuthentication() {
-        if (currentUsername == null) {
-            throw new AuthenticationException("Not authenticated. Call login() first");
-        }
+    public List<Training> getTrainerTrainings(String username, String password, LocalDate from, LocalDate to, String traineeName) {
+        TrainingFilterDTO filter = new TrainingFilterDTO(username, from, to, traineeName, null);
+        return trainingService.getTrainerTrainings(username, password, filter);
     }
 }

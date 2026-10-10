@@ -30,17 +30,17 @@ public class HibernateConfig {
     }
 
     @Bean
-    public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource, Environment env) {
         LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
         emf.setDataSource(dataSource);
         emf.setPackagesToScan("com.epam.domain");
         emf.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
 
         Properties props = new Properties();
-        props.setProperty("hibernate.hbm2ddl.auto", "create-drop");
-        props.setProperty("hibernate.show_sql", "true");
-        props.setProperty("hibernate.format_sql", "true");
-        props.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
+        props.setProperty("hibernate.hbm2ddl.auto", env.getProperty("spring.jpa.hibernate.ddl-auto"));
+        props.setProperty("hibernate.show_sql", env.getProperty("spring.jpa.show-sql"));
+        props.setProperty("hibernate.format_sql", env.getProperty("spring.jpa.properties.hibernate.format_sql"));
+        props.setProperty("hibernate.dialect", env.getProperty("spring.jpa.properties.hibernate.dialect"));
         emf.setJpaProperties(props);
 
         return emf;

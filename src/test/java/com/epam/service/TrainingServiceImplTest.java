@@ -1,5 +1,6 @@
 package com.epam.service;
 
+import com.epam.dto.TrainingFilterDTO;
 import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
 import com.epam.domain.Training;
@@ -17,18 +18,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class TrainingServiceTest {
+public class TrainingServiceImplTest {
 
     @InjectMocks
     private TrainingServiceImpl trainingService;
@@ -36,12 +34,15 @@ public class TrainingServiceTest {
     @Mock
     private TrainingDao trainingDao;
 
+    @Mock
+    private UserService userService;
+
     @Test
         public void shouldPersistTraining() {
         Training training = generateTraining();
         when(trainingDao.add(training)).thenReturn(training);
 
-        Training result = trainingService.add(training);
+        Training result = trainingService.add("Bilbo.Baggins", "password12", training);
 
         assertSame(training, result);
         verify(trainingDao).add(training);
@@ -52,7 +53,7 @@ public class TrainingServiceTest {
         Training training = generateTraining();
         training.setTrainee(null);
         
-        assertThrows(ValidationException.class, () -> trainingService.add(training));
+        assertThrows(ValidationException.class, () -> trainingService.add("Bilbo.Baggins", "password12", training));
         verifyNoInteractions(trainingDao);
     }
 
@@ -61,7 +62,7 @@ public class TrainingServiceTest {
         Training training = generateTraining();
         training.setTrainer(null);
 
-        assertThrows(ValidationException.class, () -> trainingService.add(training));
+        assertThrows(ValidationException.class, () -> trainingService.add("Bilbo.Baggins", "password12", training));
         verifyNoInteractions(trainingDao);
     }
 
@@ -70,7 +71,7 @@ public class TrainingServiceTest {
         Training training = generateTraining();
         training.setTrainingType(null);
 
-        assertThrows(ValidationException.class, () -> trainingService.add(training));
+        assertThrows(ValidationException.class, () -> trainingService.add("Bilbo.Baggins", "password12", training));
         verifyNoInteractions(trainingDao);
     }
 
@@ -79,7 +80,7 @@ public class TrainingServiceTest {
         Training training = generateTraining();
         training.setTrainingName(" ");
 
-        assertThrows(ValidationException.class, () -> trainingService.add(training));
+        assertThrows(ValidationException.class, () -> trainingService.add("Bilbo.Baggins", "password12", training));
         verifyNoInteractions(trainingDao);
     }
 
@@ -88,7 +89,7 @@ public class TrainingServiceTest {
         Training training = generateTraining();
         training.setTrainingDate(null);
 
-        assertThrows(ValidationException.class, () -> trainingService.add(training));
+        assertThrows(ValidationException.class, () -> trainingService.add("Bilbo.Baggins", "password12", training));
         verifyNoInteractions(trainingDao);
     }
 
@@ -97,22 +98,8 @@ public class TrainingServiceTest {
         Training training = generateTraining();
         training.setTrainingDuration(null);
 
-        assertThrows(ValidationException.class, () -> trainingService.add(training));
+        assertThrows(ValidationException.class, () -> trainingService.add("Bilbo.Baggins", "password12", training));
         verifyNoInteractions(trainingDao);
-    }
-
-    @Test
-    public void shouldGetTraining() {
-        Training training = generateTraining();
-        when(trainingDao.get(1L)).thenReturn(training);
-
-        assertEquals(Optional.of(training), trainingService.get(1L));
-    }
-
-    @Test
-    public void shouldReturnEmptyWhenTrainingDoesNotExist() {
-        when(trainingDao.get(1L)).thenReturn(null);
-        assertTrue(trainingService.get(1L).isEmpty());
     }
     
     @Test
@@ -120,19 +107,15 @@ public class TrainingServiceTest {
         LocalDate from = LocalDate.of(2026, 3, 3);
         LocalDate to = LocalDate.of(2026, 12, 14);
         List<Training> trainings = List.of(generateTraining());
+
+        TrainingFilterDTO filter = new TrainingFilterDTO("Bilbo.Baggins", from, to, "Trainer", TrainingTypeName.FITNESS);
         
-        when(trainingDao.findByTraineeUsernameAndCriteria(
-                "Bilbo.Baggins", from, to, "Trainer", TrainingTypeName.FITNESS
-        )).thenReturn(trainings);
+        when(trainingDao.findByTraineeUsernameAndCriteria(filter)).thenReturn(trainings);
         
-        List<Training> result = trainingService.getTraineeTrainings(
-                "Bilbo.Baggins", from, to, "Trainer", TrainingTypeName.FITNESS
-        );
+        List<Training> result = trainingService.getTraineeTrainings("Bilbo.Baggins", "password12", filter);
         
         assertSame(trainings, result);
-        verify(trainingDao).findByTraineeUsernameAndCriteria(
-                "Bilbo.Baggins", from, to, "Trainer", TrainingTypeName.FITNESS
-        );
+        verify(trainingDao).findByTraineeUsernameAndCriteria(filter);
     }
     
     @Test
@@ -141,13 +124,14 @@ public class TrainingServiceTest {
         LocalDate to = LocalDate.of(2026, 12, 14);
         List<Training> trainings = List.of(generateTraining());
 
-        when(trainingDao.findByTrainerUsernameAndCriteria("Bilbo.Baggins", from, to, "Trainee"))
-                .thenReturn(trainings);
+        TrainingFilterDTO filter = new TrainingFilterDTO("Bilbo.Baggins", from, to, "Trainee", null);
 
-        List<Training> result = trainingService.getTrainerTrainings("Bilbo.Baggins", from, to, "Trainee");
+        when(trainingDao.findByTrainerUsernameAndCriteria(filter)).thenReturn(trainings);
+
+        List<Training> result = trainingService.getTrainerTrainings("Bilbo.Baggins", "password12", filter);
 
         assertSame(trainings, result);
-        verify(trainingDao).findByTrainerUsernameAndCriteria("Bilbo.Baggins", from, to, "Trainee");
+        verify(trainingDao).findByTrainerUsernameAndCriteria(filter);
     }
 
     private Training generateTraining() {

@@ -1,0 +1,135 @@
+package com.epam.service;
+
+import com.epam.domain.Trainer;
+import com.epam.domain.TrainingType;
+import com.epam.domain.TrainingTypeName;
+import com.epam.exception.ValidationException;
+import com.epam.repository.TrainerDao;
+import com.epam.service.impl.TrainerServiceImpl;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+public class TrainerServiceImplTest {
+
+    @InjectMocks
+    private TrainerServiceImpl trainerService;
+
+    @Mock
+    private TrainerDao trainerDao;
+
+    @Mock
+    private UserService userService;
+
+    @Test
+    public void shouldDelegateAdd() {
+        Trainer trainer = generateTrainer();
+        trainer.setSpecialization(generateSpecialization());
+
+        when(userService.add(trainer)).thenReturn(trainer);
+
+        assertSame(trainer, trainerService.add(trainer));
+        verify(userService).add(trainer);
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenAddWithoutSpecialization() {
+        Trainer trainer = generateTrainer();
+        trainer.setSpecialization(null);
+
+        assertThrows(ValidationException.class, () -> trainerService.add(trainer));
+        verifyNoInteractions(trainerDao, userService);
+    }
+
+    @Test
+    public void shouldDelegateUpdate() {
+        Trainer trainer = generateTrainer();
+        trainer.setSpecialization(generateSpecialization());
+
+        when(userService.updateInternal(trainer)).thenReturn(trainer);
+
+        assertSame(trainer, trainerService.update("Bilbo.Baggins", "password12", trainer));
+
+        verify(userService).checkCredentials("Bilbo.Baggins", "password12");
+        verify(userService).updateInternal(trainer);
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenUpdatingWithoutSpecialization() {
+        Trainer trainer = generateTrainer();
+        trainer.setSpecialization(null);
+
+        assertThrows(ValidationException.class, () -> trainerService.update("Bilbo.Baggins", "password12", trainer));
+    }
+
+    @Test
+    public void shouldDelegateFindByUsername() {
+        Trainer trainer = generateTrainer();
+        when(userService.findByUsername("Bilbo.Baggins", "password12")).thenReturn(trainer);
+
+        assertSame(trainer, trainerService.findByUsername("Bilbo.Baggins", "password12"));
+        verify(userService).findByUsername("Bilbo.Baggins", "password12");
+    }
+
+    @Test
+    public void shouldDelegateChangePassword() {
+        trainerService.changePassword("Bilbo.Baggins", "password12", "password99");
+        verify(userService).changePassword("Bilbo.Baggins", "password12", "password99");
+    }
+
+    @Test
+    public void shouldDelegateActivate() {
+        trainerService.activate("Bilbo.Baggins", "password12");
+        verify(userService).activate("Bilbo.Baggins", "password12");
+    }
+
+    @Test
+    public void shouldDelegateDeactivate() {
+        trainerService.deactivate("Bilbo.Baggins", "password12");
+        verify(userService).deactivate("Bilbo.Baggins", "password12");
+    }
+
+    @Test
+    public void shouldDelegateMatchCredentials() {
+        when(userService.matchCredentials("Bilbo.Baggins", "password12")).thenReturn(true);
+
+        assertTrue(trainerService.matchCredentials("Bilbo.Baggins", "password12"));
+        verify(userService).matchCredentials("Bilbo.Baggins", "password12");
+    }
+
+    @Test
+    public void shouldGetTrainersNotAssignedToTrainee() {
+        List<Trainer> trainers = List.of(generateTrainer());
+        when(trainerDao.findNotAssignedByTrainee("Bilbo.Baggins")).thenReturn(trainers);
+        
+        assertSame(trainers, trainerService.getTrainersNotAssignedToTrainee("Bilbo.Baggins", "password12"));
+        
+        verify(userService).checkCredentials("Bilbo.Baggins", "password12");
+        verify(trainerDao).findNotAssignedByTrainee("Bilbo.Baggins");
+    }
+
+    private Trainer generateTrainer() {
+        Trainer trainer = new Trainer();
+        trainer.setFirstName("Bilbo");
+        trainer.setLastName("Baggins");
+        return trainer;
+    }
+
+    private TrainingType generateSpecialization() {
+        TrainingType trainingType = new TrainingType();
+        trainingType.setName(TrainingTypeName.FITNESS);
+        return trainingType;
+    }
+}

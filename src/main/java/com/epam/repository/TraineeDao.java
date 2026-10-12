@@ -3,33 +3,38 @@ package com.epam.repository;
 import com.epam.domain.Trainee;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
-import java.util.Map;
-
 @Repository
-public class TraineeDao extends AbstractUserDao<Trainee> {
+public class TraineeDao extends AbstractDao<Trainee> {
 
     private static final Logger LOG = LoggerFactory.getLogger(TraineeDao.class);
 
-    private Map<Long, Trainee> storage;
+    private static final String QUERY_DELETE_TRAINEE_BY_USERNAME = "DELETE FROM trainees WHERE id IN " +
+            "(SELECT id FROM users WHERE username = :username)";
+    private static final String QUERY_DELETE_USER_BY_USERNAME = "DELETE FROM users WHERE username = :username";
 
-    @Autowired
-    public void setTraineeMap(@Qualifier("traineeMap") Map<Long, Trainee> traineeMap) {
-        this.storage = traineeMap;
+    public boolean delete(String username) {
+        if (username == null || username.isBlank()) {
+            return false;
+        }
+
+        getEntityManager()
+                .createNativeQuery(QUERY_DELETE_TRAINEE_BY_USERNAME)
+                .setParameter("username", username)
+                .executeUpdate();
+
+        int deletedUsers = getEntityManager()
+                .createNativeQuery(QUERY_DELETE_USER_BY_USERNAME)
+                .setParameter("username", username)
+                .executeUpdate();
+
+        LOG.debug("Trying delete trainee: username={}", username);
+        return deletedUsers > 0;
     }
 
     @Override
-    protected Map<Long, Trainee> getStorage() {
-        return storage;
-    }
-
-    public boolean delete(Long id) {
-        boolean removed = getStorage().remove(id) != null;
-
-        LOG.debug("Trainee deleted: id={}, removed={}", id, removed);
-        return removed;
+    protected Class<Trainee> getEntityClass() {
+        return Trainee.class;
     }
 }

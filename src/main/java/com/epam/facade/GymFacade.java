@@ -1,14 +1,17 @@
 package com.epam.facade;
 
+import com.epam.dto.TrainingFilterDTO;
 import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
 import com.epam.domain.Training;
+import com.epam.domain.TrainingTypeName;
 import com.epam.service.TraineeService;
 import com.epam.service.TrainerService;
 import com.epam.service.TrainingService;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
+import java.time.LocalDate;
+import java.util.List;
 
 @Component
 public class GymFacade {
@@ -27,35 +30,73 @@ public class GymFacade {
         return traineeService.add(trainee);
     }
 
-    public Trainee updateTrainee(Trainee trainee) {
-        return traineeService.update(trainee);
+    public Trainee updateTrainee(String username, String password, Trainee trainee) {
+        return traineeService.update(username, password, trainee);
     }
 
-    public Optional<Trainee> getTrainee(Long id) {
-        return traineeService.get(id);
+    public Trainee getTraineeByUsername(String username, String password) {
+        return traineeService.findByUsername(username, password);
     }
 
-    public boolean deleteTrainee(Long id) {
-        return traineeService.delete(id);
+    public void changeTraineePassword(String username, String oldPassword, String newPassword) {
+        traineeService.changePassword(username, oldPassword, newPassword);
+    }
+
+    public void activateTrainee(String username, String password) {
+        traineeService.activate(username, password);
+    }
+
+    public void deactivateTrainee(String username, String password) {
+        traineeService.deactivate(username, password);
+    }
+
+    public boolean deleteTraineeByUsername(String username, String password) {
+        return traineeService.deleteByUsername(username, password);
+    }
+
+    public void updateTraineeTrainers(String traineeUsername, String password, List<String> trainerUsernames) {
+        traineeService.updateTrainers(traineeUsername, password, trainerUsernames);
     }
 
     public Trainer addTrainer(Trainer trainer) {
         return trainerService.add(trainer);
     }
 
-    public Trainer updateTrainer(Trainer trainer) {
-        return trainerService.update(trainer);
+    public Trainer updateTrainer(String username, String password, Trainer trainer) {
+        return trainerService.update(username, password, trainer);
     }
 
-    public Optional<Trainer> getTrainer(Long id) {
-        return trainerService.get(id);
+    public Trainer getTrainerByUsername(String username, String password) {
+        return trainerService.findByUsername(username, password);
     }
 
-    public Training addTraining(Training training) {
-        return trainingService.add(training);
+    public void changeTrainerPassword(String username, String oldPassword, String newPassword) {
+        trainerService.changePassword(username, oldPassword, newPassword);
     }
 
-    public Optional<Training> getTraining(Long id) {
-        return trainingService.get(id);
+    public void activateTrainer(String username, String password) {
+        trainerService.activate(username, password);
+    }
+
+    public void deactivateTrainer(String username, String password) {
+        trainerService.deactivate(username, password);
+    }
+
+    public List<Trainer> getTrainersNotAssignedToTrainee(String traineeUsername, String password) {
+        return trainerService.getTrainersNotAssignedToTrainee(traineeUsername, password);
+    }
+
+    public Training addTraining(String username, String password, Training training) {
+        return trainingService.add(username, password, training);
+    }
+
+    public List<Training> getTraineeTrainings(String username, String password, LocalDate from, LocalDate to, String trainerName, TrainingTypeName type) {
+        TrainingFilterDTO filter = new TrainingFilterDTO(username, from, to, trainerName, type);
+        return trainingService.getTraineeTrainings(username, password, filter);
+    }
+
+    public List<Training> getTrainerTrainings(String username, String password, LocalDate from, LocalDate to, String traineeName) {
+        TrainingFilterDTO filter = new TrainingFilterDTO(username, from, to, traineeName, null);
+        return trainingService.getTrainerTrainings(username, password, filter);
     }
 }

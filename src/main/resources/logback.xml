@@ -1,0 +1,6 @@
+<configuration>
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+    <logger name="com.epam" level="DEBUG"/>
+</configuration>

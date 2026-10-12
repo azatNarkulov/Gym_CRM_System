@@ -1,108 +1,74 @@
 package com.epam.repository;
 
 import com.epam.domain.Trainee;
-import org.junit.jupiter.api.BeforeEach;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.HashMap;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class TraineeDaoTest {
 
+    @InjectMocks
     private TraineeDao traineeDao;
 
-    @BeforeEach
-    public void setUp() {
-        traineeDao = new TraineeDao();
-        traineeDao.setTraineeMap(new HashMap<>());
+    @Mock
+    private EntityManager entityManager;
+
+    @Mock
+    private Query traineeQuery;
+
+    @Mock
+    private Query userQuery;
+
+    @Test
+    public void shouldReturnFalseWhenDeleteForNullOrBlank() {
+        assertFalse(traineeDao.delete(null));
+        assertFalse(traineeDao.delete(""));
+        assertFalse(traineeDao.delete("   "));
     }
 
     @Test
-    public void shouldAddTrainee() {
-        Trainee trainee = generateTrainee();
+    public void shouldUseBothQueriesWhenDelete() {
+        when(entityManager.createNativeQuery(anyString())).thenReturn(traineeQuery, userQuery);
+        when(traineeQuery.setParameter(anyString(), any())).thenReturn(traineeQuery);
+        when(userQuery.setParameter(anyString(), any())).thenReturn(userQuery);
+        when(traineeQuery.executeUpdate()).thenReturn(1);
+        when(userQuery.executeUpdate()).thenReturn(1);
 
-        Trainee result = traineeDao.add(trainee);
+        assertTrue(traineeDao.delete("Bilbo.Baggins"));
 
-        assertNotNull(result.getId());
-        assertEquals(1L, result.getId());
-        assertSame(trainee, result);
+        verify(traineeQuery).executeUpdate();
+        verify(userQuery).executeUpdate();
     }
 
     @Test
-    public void shouldUpdateTrainee() {
-        Trainee trainee = generateTrainee();
-        traineeDao.add(trainee);
+    public void shouldReturnFalseWhenDeleteAndUserNotFound() {
+        when(entityManager.createNativeQuery(anyString())).thenReturn(traineeQuery, userQuery);
+        when(traineeQuery.setParameter(anyString(), any())).thenReturn(traineeQuery);
+        when(userQuery.setParameter(anyString(), any())).thenReturn(userQuery);
+        when(traineeQuery.executeUpdate()).thenReturn(0);
+        when(userQuery.executeUpdate()).thenReturn(0);
 
-        trainee.setFirstName("Frodo");
-
-        Trainee result = traineeDao.update(trainee);
-
-        assertEquals("Frodo", result.getFirstName());
-        assertSame(trainee, traineeDao.get(1L));
+        assertFalse(traineeDao.delete("Frodo.Baggins"));
     }
 
     @Test
-    public void shouldDeleteTrainee() {
-        Trainee trainee = generateTrainee();
-        traineeDao.add(trainee);
-
-        boolean result = traineeDao.delete(1L);
-
-        assertTrue(result);
-        assertNull(traineeDao.get(1L));
-    }
-
-    @Test
-    public void shouldReturnFalseWhenDeletingNonExistingTrainee() {
-        assertFalse(traineeDao.delete(1L));
-    }
-
-    @Test
-    public void shouldGetTrainee() {
-        Trainee trainee = generateTrainee();
-        traineeDao.add(trainee);
-
-        Trainee result = traineeDao.get(1L);
-
-        assertSame(trainee, result);
-    }
-
-    @Test
-    public void shouldFindExistingUsername() {
-        Trainee trainee = generateTrainee();
-        traineeDao.add(trainee);
-
-        assertTrue(traineeDao.existsByUsername("Bilbo.Baggins"));
-    }
-
-    @Test
-    public void shouldReturnFalseForNonExistingUsername() {
-        assertFalse(traineeDao.existsByUsername("Bilbo.Baggins"));
-    }
-
-    @Test
-    public void shouldGenerateNextId() {
-        Trainee firstTrainee = generateTrainee();
-        traineeDao.add(firstTrainee);
-
-        Trainee secondTrainee = generateTrainee();
-        traineeDao.add(secondTrainee);
-
-        assertEquals(1L, firstTrainee.getId());
-        assertEquals(2L, secondTrainee.getId());
-    }
-
-    private Trainee generateTrainee() {
+    public void shouldGetTraineeById() {
         Trainee trainee = new Trainee();
-        trainee.setFirstName("Bilbo");
-        trainee.setLastName("Baggins");
-        trainee.setUsername("Bilbo.Baggins");
-        return trainee;
+        when(entityManager.find(Trainee.class, 1L)).thenReturn(trainee);
+
+        assertSame(trainee, traineeDao.get(1L));
     }
 }

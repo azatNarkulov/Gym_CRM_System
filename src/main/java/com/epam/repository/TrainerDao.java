@@ -1,24 +1,30 @@
 package com.epam.repository;
 
 import com.epam.domain.Trainer;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
-import java.util.Map;
+import java.util.List;
 
 @Repository
-public class TrainerDao extends AbstractUserDao<Trainer> {
+public class TrainerDao extends AbstractDao<Trainer> {
 
-    private Map<Long, Trainer> storage;
+    private static final Logger LOG = LoggerFactory.getLogger(TrainerDao.class);
 
-    @Autowired
-    public void setTrainerMap(@Qualifier("trainerMap") Map<Long, Trainer> trainerMap) {
-        this.storage = trainerMap;
+    private static final String QUERY_FIND_NOT_ASSIGNED_BY_TRAINEE =
+            "SELECT trainer FROM Trainer trainer WHERE trainer NOT IN (" +
+            "    SELECT trainer2 FROM Trainee trainee JOIN trainee.trainers trainer2 WHERE trainee.username = :username)";
+
+    public List<Trainer> findNotAssignedByTrainee(String traineeUsername) {
+        LOG.debug("Finding trainers by traineeUsername={}", traineeUsername);
+        return getEntityManager().createQuery(QUERY_FIND_NOT_ASSIGNED_BY_TRAINEE, Trainer.class)
+                .setParameter("username", traineeUsername)
+                .getResultList();
     }
 
     @Override
-    protected Map<Long, Trainer> getStorage() {
-        return storage;
+    protected Class<Trainer> getEntityClass() {
+        return Trainer.class;
     }
 }

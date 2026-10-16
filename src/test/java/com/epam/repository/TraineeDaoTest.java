@@ -33,6 +33,14 @@ public class TraineeDaoTest {
     private Query userQuery;
 
     @Test
+    public void shouldAddTrainee() {
+        Trainee trainee = new Trainee();
+
+        assertSame(trainee, traineeDao.add(trainee));
+        verify(entityManager).persist(trainee);
+    }
+
+    @Test
     public void shouldReturnFalseWhenDeleteForNullOrBlank() {
         assertFalse(traineeDao.delete(null));
         assertFalse(traineeDao.delete(""));

@@ -2,7 +2,9 @@ package com.epam.service.impl;
 
 import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
+import com.epam.exception.ValidationException;
 import com.epam.repository.TraineeDao;
+import com.epam.repository.TrainerDao;
 import com.epam.service.TraineeService;
 import com.epam.service.UserService;
 import org.slf4j.Logger;
@@ -27,19 +29,28 @@ public class TraineeServiceImpl implements TraineeService {
     @Autowired
     private TraineeDao traineeDao;
 
+    @Autowired
+    private TrainerDao trainerDao;
+
     @Override
     public Trainee add(Trainee trainee) {
-        return (Trainee) userService.add(trainee);
+        if (trainerDao.existsByFirstNameAndLastName(trainee.getFirstName(), trainee.getLastName())) {
+            throw new ValidationException("User " + trainee.getFirstName() + " " + trainee.getLastName()
+                    + " is already registered as trainer");
+        }
+        LOG.info("Creating trainee: {} {}", trainee.getFirstName(), trainee.getLastName());
+        userService.prepareForCreation(trainee);
+        return traineeDao.add(trainee);
     }
 
     @Override
-    public Trainee update(String username, String password, Trainee trainee) {
-        return (Trainee) userService.update(username, password, trainee);
+    public Trainee update(Trainee trainee) {
+        return (Trainee) userService.update(trainee);
     }
 
     @Override
-    public Trainee findByUsername(String username, String password) {
-        return (Trainee) userService.findByUsername(username, password);
+    public Trainee findByUsername(String username) {
+        return (Trainee) userService.findByUsername(username);
     }
 
     @Override
@@ -48,36 +59,24 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public void activate(String username, String password) {
-        userService.activate(username, password);
+    public void setActive(String username, boolean active) {
+        userService.setActive(username, active);
     }
 
     @Override
-    public void deactivate(String username, String password) {
-        userService.deactivate(username, password);
-    }
-
-    @Override
-    public boolean matchCredentials(String username, String password) {
-        return userService.matchCredentials(username, password);
-    }
-
-    @Override
-    public boolean deleteByUsername(String username, String password) {
-        userService.checkCredentials(username, password);
+    public boolean deleteByUsername(String username) {
         LOG.info("Deleting trainee: {}", username);
         return traineeDao.delete(username);
     }
 
     @Override
-    public void updateTrainers(String traineeUsername, String password, List<String> trainerUsernames) {
-        userService.checkCredentials(traineeUsername, password);
+    public void updateTrainers(String traineeUsername, List<String> trainerUsernames) {
         LOG.info("Updating trainers for trainee: {}", traineeUsername);
-        Trainee trainee = (Trainee) userService.findByUsernameInternal(traineeUsername);
+        Trainee trainee = (Trainee) userService.findByUsername(traineeUsername);
 
         Set<Trainer> trainers = new HashSet<>();
         for (String trainerUsername : trainerUsernames) {
-            Trainer trainer = (Trainer) userService.findByUsernameInternal(trainerUsername);
+            Trainer trainer = (Trainer) userService.findByUsername(trainerUsername);
             trainers.add(trainer);
         }
 

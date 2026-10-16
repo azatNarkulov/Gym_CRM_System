@@ -31,14 +31,12 @@ public class UserServiceImpl implements UserService {
     private UserDao userDao;
 
     @Override
-    public User add(User user) {
+    public void prepareForCreation(User user) {
         validateRequiredFields(user);
-        LOG.info("Creating user: {} {}", user.getFirstName(), user.getLastName());
-
         user.setUsername(generateUsername(user));
         user.setPassword(generatePassword());
-
-        return userDao.add(user);
+        user.setActive(true);
+        LOG.info("Prepared credentials for user: {}", user.getUsername());
     }
 
     @Override
@@ -48,13 +46,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User update(String username, String password, User user) {
-        checkCredentials(username, password);
-        return updateInternal(user);
-    }
-
-    @Override
-    public User updateInternal(User user) {
+    public User update(User user) {
         validateRequiredFields(user);
         LOG.info("Updating user: {}", user.getUsername());
 
@@ -66,63 +58,41 @@ public class UserServiceImpl implements UserService {
         User existing = get(id).orElseThrow(UserNotFoundException::new);
 
         String newUsername = user.getUsername();
-        if (newUsername == null) {
-            user.setUsername(existing.getUsername());
-        } else if (!newUsername.equals(existing.getUsername()) && userDao.existsByUsername(newUsername)) {
-            throw new ValidationException("Username already taken: " + newUsername);
+        if (newUsername != null && !newUsername.equals(existing.getUsername())) {
+            throw new ValidationException("Username cannot be changed");
         }
-
-        user.setActive(existing.isActive());
+        user.setUsername(existing.getUsername());
         user.setPassword(existing.getPassword());
 
         return userDao.update(user);
     }
 
     @Override
-    public User findByUsername(String username, String password) {
-        checkCredentials(username, password);
-        return findByUsernameInternal(username);
-    }
-
-    @Override
-    public User findByUsernameInternal(String username) {
+    public User findByUsername(String username) {
         LOG.debug("Finding user by username: {}", username);
         return userDao.findByUsername(username).orElseThrow(() -> new UserNotFoundException(username));
     }
 
     @Override
     public void changePassword(String username, String oldPassword, String newPassword) {
-        checkCredentials(username, oldPassword);
+        User user = findByUsername(username);
+        if (!user.getPassword().equals(oldPassword)) {
+            throw new AuthenticationException("Username or password is incorrect");
+        }
         LOG.info("Changing password for user: {}", username);
-        User user = findByUsernameInternal(username);
         user.setPassword(newPassword);
         userDao.update(user);
     }
 
     @Override
-    public void activate(String username, String password) {
-        if (!matchPasswordOnly(username, password)) {
-            throw new AuthenticationException("Username or password is incorrect");
+    public void setActive(String username, boolean active) {
+        User user = findByUsername(username);
+        if (user.isActive() == active) {
+            String status = active ? "active" : "inactive";
+            throw new ValidationException("User is already " + status + ": " + username);
         }
-
-        User user = findByUsernameInternal(username);
-        if (user.isActive()) {
-            throw new ValidationException("User is already active: " + username);
-        }
-        user.setActive(true);
-        LOG.info("Activating user: {}", username);
-        userDao.update(user);
-    }
-
-    @Override
-    public void deactivate(String username, String password) {
-        checkCredentials(username, password);
-        LOG.info("Deactivating user: {}", username);
-        User user = findByUsernameInternal(username);
-        if (!user.isActive()) {
-            throw new ValidationException("User is already inactive: " + username);
-        }
-        user.setActive(false);
+        user.setActive(active);
+        LOG.info("{} user: {}", active ? "Activating" : "Deactivating", username);
         userDao.update(user);
     }
 
@@ -136,16 +106,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean matchPasswordOnly(String username, String password) {
-        LOG.debug("Matching password: {}", username);
-        return userDao.findByUsername(username)
-                .filter(u -> u.getPassword().equals(password))
-                .isPresent();
-    }
-
-    @Override
     public String generatePassword() {
-
         StringBuilder password = new StringBuilder(PASSWORD_LENGTH);
 
         for (int i = 0; i < PASSWORD_LENGTH; i++) {
@@ -157,16 +118,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String generateUsername(User user) {
-
         String baseUsername = user.getFirstName() + "." + user.getLastName();
         String username;
 
-        if (!isUsernameExists(baseUsername)) {
+        if (!userDao.existsByUsername(baseUsername)) {
             username = baseUsername;
         } else {
             int serialNumber = 1;
 
-            while (isUsernameExists(baseUsername + serialNumber)) {
+            while (userDao.existsByUsername(baseUsername + serialNumber)) {
                 serialNumber++;
             }
 
@@ -177,12 +137,6 @@ public class UserServiceImpl implements UserService {
         return username;
     }
 
-    public void checkCredentials(String username, String password) {
-        if (!matchCredentials(username, password)) {
-            throw new AuthenticationException("Username or password is incorrect");
-        }
-    }
-
     private void validateRequiredFields(User user) {
         if (user.getFirstName() == null || user.getFirstName().isBlank()) {
             throw new ValidationException("First name is required");
@@ -190,9 +144,5 @@ public class UserServiceImpl implements UserService {
         if (user.getLastName() == null || user.getLastName().isBlank()) {
             throw new ValidationException("Last name is required");
         }
-    }
-
-    private boolean isUsernameExists(String username) {
-        return userDao.existsByUsername(username);
     }
 }

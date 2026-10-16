@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -14,6 +15,7 @@ public class TrainingTypeDao extends AbstractDao<TrainingType> {
     private static final Logger LOG = LoggerFactory.getLogger(TrainingTypeDao.class);
 
     private static final String QUERY_FIND_BY_NAME = "SELECT t FROM TrainingType t WHERE t.name = :name";
+    private static final String QUERY_FIND_ALL = "SELECT t FROM TrainingType t ORDER BY t.id";
 
     public Optional<TrainingType> findByName(TrainingTypeName name) {
         LOG.debug("Finding Training type={}", name);
@@ -23,6 +25,13 @@ public class TrainingTypeDao extends AbstractDao<TrainingType> {
                 .getResultStream()
                 .findFirst();
 
+    }
+
+    public List<TrainingType> findAll() {
+        LOG.debug("Finding all Training types");
+        return getEntityManager()
+                .createQuery(QUERY_FIND_ALL, TrainingType.class)
+                .getResultList();
     }
 
     @Override

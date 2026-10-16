@@ -3,6 +3,7 @@ package com.epam.config;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import jakarta.persistence.EntityManagerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -30,17 +31,22 @@ public class HibernateConfig {
     }
 
     @Bean
-    public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource, Environment env) {
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory(
+            DataSource dataSource,
+            @Value("${spring.jpa.hibernate.ddl-auto}") String ddlAuto,
+            @Value("${spring.jpa.show-sql}") String showSql,
+            @Value("${spring.jpa.properties.hibernate.format_sql}") String formatSql,
+            @Value("${spring.jpa.properties.hibernate.dialect}") String dialect) {
         LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
         emf.setDataSource(dataSource);
         emf.setPackagesToScan("com.epam.domain");
         emf.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
 
         Properties props = new Properties();
-        props.setProperty("hibernate.hbm2ddl.auto", env.getProperty("spring.jpa.hibernate.ddl-auto"));
-        props.setProperty("hibernate.show_sql", env.getProperty("spring.jpa.show-sql"));
-        props.setProperty("hibernate.format_sql", env.getProperty("spring.jpa.properties.hibernate.format_sql"));
-        props.setProperty("hibernate.dialect", env.getProperty("spring.jpa.properties.hibernate.dialect"));
+        props.setProperty("hibernate.hbm2ddl.auto", ddlAuto);
+        props.setProperty("hibernate.show_sql", showSql);
+        props.setProperty("hibernate.format_sql", formatSql);
+        props.setProperty("hibernate.dialect", dialect);
         emf.setJpaProperties(props);
 
         return emf;

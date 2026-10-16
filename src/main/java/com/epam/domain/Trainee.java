@@ -1,5 +1,6 @@
 package com.epam.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -20,6 +21,8 @@ import java.util.Set;
 @Table(name = "trainees")
 @PrimaryKeyJoinColumn(name = "id")
 public class Trainee extends User {
+
+    @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
     private String address;
 

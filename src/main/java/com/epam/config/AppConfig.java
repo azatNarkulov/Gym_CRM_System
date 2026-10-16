@@ -7,7 +7,11 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 
 @Configuration
-@ComponentScan("com.epam")
+@ComponentScan(basePackages = {
+        "com.epam.service",
+        "com.epam.repository",
+        "com.epam.facade"
+})
 @PropertySource("classpath:application.properties")
 public class AppConfig {
 

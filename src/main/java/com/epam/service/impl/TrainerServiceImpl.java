@@ -2,6 +2,7 @@ package com.epam.service.impl;
 
 import com.epam.domain.Trainer;
 import com.epam.exception.ValidationException;
+import com.epam.repository.TraineeDao;
 import com.epam.repository.TrainerDao;
 import com.epam.service.TrainerService;
 import com.epam.service.UserService;
@@ -25,22 +26,30 @@ public class TrainerServiceImpl implements TrainerService {
     @Autowired
     private TrainerDao trainerDao;
 
+    @Autowired
+    private TraineeDao traineeDao;
+
     @Override
     public Trainer add(Trainer trainer) {
         validateRequiredSpecialization(trainer);
-        return (Trainer) userService.add(trainer);
+        if (traineeDao.existsByFirstNameAndLastName(trainer.getFirstName(), trainer.getLastName())) {
+            throw new ValidationException("User " + trainer.getFirstName() + " " + trainer.getLastName()
+                    + " is already registered as trainee");
+        }
+        LOG.info("Creating trainer: {} {}", trainer.getFirstName(), trainer.getLastName());
+        userService.prepareForCreation(trainer);
+        return trainerDao.add(trainer);
     }
 
     @Override
-    public Trainer update(String username, String password, Trainer trainer) {
-        userService.checkCredentials(username, password);
+    public Trainer update(Trainer trainer) {
         validateRequiredSpecialization(trainer);
-        return (Trainer) userService.updateInternal(trainer);
+        return (Trainer) userService.update(trainer);
     }
 
     @Override
-    public Trainer findByUsername(String username, String password) {
-        return (Trainer) userService.findByUsername(username, password);
+    public Trainer findByUsername(String username) {
+        return (Trainer) userService.findByUsername(username);
     }
 
     @Override
@@ -49,23 +58,12 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public void activate(String username, String password) {
-        userService.activate(username, password);
+    public void setActive(String username, boolean active) {
+        userService.setActive(username, active);
     }
 
     @Override
-    public void deactivate(String username, String password) {
-        userService.deactivate(username, password);
-    }
-
-    @Override
-    public boolean matchCredentials(String username, String password) {
-        return userService.matchCredentials(username, password);
-    }
-
-    @Override
-    public List<Trainer> getTrainersNotAssignedToTrainee(String traineeUsername, String password) {
-        userService.checkCredentials(traineeUsername, password);
+    public List<Trainer> getTrainersNotAssignedToTrainee(String traineeUsername) {
         LOG.debug("Get trainers not assigned to trainee {}", traineeUsername);
         return trainerDao.findNotAssignedByTrainee(traineeUsername);
     }

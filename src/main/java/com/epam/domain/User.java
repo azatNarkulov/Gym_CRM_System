@@ -15,10 +15,10 @@ import lombok.Setter;
 @Inheritance(strategy = InheritanceType.JOINED)
 public class User extends BaseEntity {
 
-    @Column(nullable = false)
+    @Column(name = "first_name", nullable = false)
     private String firstName;
 
-    @Column(nullable = false)
+    @Column(name = "last_name", nullable = false)
     private String lastName;
 
     @Column(unique = true, nullable = false)

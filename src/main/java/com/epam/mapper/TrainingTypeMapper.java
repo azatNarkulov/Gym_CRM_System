@@ -7,7 +7,7 @@ public class TrainingTypeMapper {
 
     public static TrainingTypeResponse toResponse(TrainingType type) {
         if (type == null) {
-            return null;
+            return new TrainingTypeResponse(null, null);
         }
         return new TrainingTypeResponse(type.getId(), type.getName().name());
     }

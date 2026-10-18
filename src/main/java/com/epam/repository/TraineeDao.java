@@ -13,8 +13,6 @@ public class TraineeDao extends AbstractDao<Trainee> {
     private static final String QUERY_DELETE_TRAINEE_BY_USERNAME =
             "DELETE FROM trainees WHERE id IN (SELECT id FROM users WHERE username = :username)";
     private static final String QUERY_DELETE_USER_BY_USERNAME = "DELETE FROM users WHERE username = :username";
-    private static final String QUERY_EXISTS_BY_USERNAME =
-            "SELECT t.id FROM Trainee t WHERE t.firstName = :firstName AND t.lastName = :lastName";
 
     public boolean delete(String username) {
         if (username == null || username.isBlank()) {
@@ -33,16 +31,6 @@ public class TraineeDao extends AbstractDao<Trainee> {
 
         LOG.debug("Trying delete trainee: username={}", username);
         return deletedUsers > 0;
-    }
-
-    public boolean existsByFirstNameAndLastName(String firstName, String lastName) {
-        return !getEntityManager()
-                .createQuery(QUERY_EXISTS_BY_USERNAME, Long.class)
-                .setParameter("firstName", firstName)
-                .setParameter("lastName", lastName)
-                .setMaxResults(1)
-                .getResultList()
-                .isEmpty();
     }
 
     @Override

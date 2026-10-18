@@ -30,5 +30,5 @@ public class AddTrainingRequest {
     private Duration trainingDuration;
 
     @NotBlank(message = "Training type is required")
-    private String TrainingType;
+    private String trainingType;
 }

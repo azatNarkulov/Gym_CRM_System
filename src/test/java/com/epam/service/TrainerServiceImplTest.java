@@ -4,7 +4,6 @@ import com.epam.domain.Trainer;
 import com.epam.domain.TrainingType;
 import com.epam.domain.TrainingTypeName;
 import com.epam.exception.ValidationException;
-import com.epam.repository.TraineeDao;
 import com.epam.repository.TrainerDao;
 import com.epam.service.impl.TrainerServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -26,9 +25,6 @@ public class TrainerServiceImplTest {
 
     @InjectMocks
     private TrainerServiceImpl trainerService;
-
-    @Mock
-    private TraineeDao traineeDao;
 
     @Mock
     private TrainerDao trainerDao;
@@ -55,15 +51,6 @@ public class TrainerServiceImplTest {
 
         assertThrows(ValidationException.class, () -> trainerService.add(trainer));
         verifyNoInteractions(trainerDao, userService);
-    }
-
-    @Test
-    public void shouldRejectTrainerRegistrationWhenTraineeExists() {
-        Trainer trainer = generateTrainer();
-        trainer.setSpecialization(generateSpecialization());
-        when(traineeDao.existsByFirstNameAndLastName("Bilbo", "Baggins")).thenReturn(true);
-
-        assertThrows(ValidationException.class, () -> trainerService.add(trainer));
     }
 
     @Test
@@ -97,12 +84,6 @@ public class TrainerServiceImplTest {
     public void shouldDelegateChangePassword() {
         trainerService.changePassword("Bilbo.Baggins", "password12", "password99");
         verify(userService).changePassword("Bilbo.Baggins", "password12", "password99");
-    }
-
-    @Test
-    public void shouldDelegateSetActive() {
-        trainerService.setActive("Bilbo.Baggins", true);
-        verify(userService).setActive("Bilbo.Baggins", true);
     }
 
     @Test

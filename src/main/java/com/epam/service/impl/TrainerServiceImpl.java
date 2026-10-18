@@ -2,7 +2,6 @@ package com.epam.service.impl;
 
 import com.epam.domain.Trainer;
 import com.epam.exception.ValidationException;
-import com.epam.repository.TraineeDao;
 import com.epam.repository.TrainerDao;
 import com.epam.service.TrainerService;
 import com.epam.service.UserService;
@@ -26,16 +25,9 @@ public class TrainerServiceImpl implements TrainerService {
     @Autowired
     private TrainerDao trainerDao;
 
-    @Autowired
-    private TraineeDao traineeDao;
-
     @Override
     public Trainer add(Trainer trainer) {
         validateRequiredSpecialization(trainer);
-        if (traineeDao.existsByFirstNameAndLastName(trainer.getFirstName(), trainer.getLastName())) {
-            throw new ValidationException("User " + trainer.getFirstName() + " " + trainer.getLastName()
-                    + " is already registered as trainee");
-        }
         LOG.info("Creating trainer: {} {}", trainer.getFirstName(), trainer.getLastName());
         userService.prepareForCreation(trainer);
         return trainerDao.add(trainer);
@@ -55,11 +47,6 @@ public class TrainerServiceImpl implements TrainerService {
     @Override
     public void changePassword(String username, String oldPassword, String newPassword) {
         userService.changePassword(username, oldPassword, newPassword);
-    }
-
-    @Override
-    public void setActive(String username, boolean active) {
-        userService.setActive(username, active);
     }
 
     @Override

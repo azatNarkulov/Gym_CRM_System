@@ -14,6 +14,7 @@ import com.epam.filter.AuthenticationFilter;
 import com.epam.service.TrainerService;
 import com.epam.service.TrainingService;
 import com.epam.service.TrainingTypeService;
+import com.epam.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +52,9 @@ public class TrainerControllerTest {
 
     @Mock
     private TrainingTypeService trainingTypeService;
+
+    @Mock
+    private UserService userService;
 
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;

@@ -91,7 +91,6 @@ public class AuthenticationFilter implements Filter {
         response.setCharacterEncoding("UTF-8");
 
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("status", 401);
         body.put("error", "Unauthorized");
         body.put("message", "Invalid username or password");
         body.put("path", request.getRequestURI());

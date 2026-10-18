@@ -6,13 +6,17 @@ import com.epam.dto.response.TrainingTypeResponse;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class TrainingTypeMapperTest {
 
     @Test
     void shouldReturnNullForNullInput() {
-        assertNull(TrainingTypeMapper.toResponse(null));
+        TrainingTypeResponse response = TrainingTypeMapper.toResponse(null);
+        assertNotNull(response);
+        assertNull(response.getId());
+        assertNull(response.getName());
     }
 
     @Test

@@ -2,9 +2,7 @@ package com.epam.service.impl;
 
 import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
-import com.epam.exception.ValidationException;
 import com.epam.repository.TraineeDao;
-import com.epam.repository.TrainerDao;
 import com.epam.service.TraineeService;
 import com.epam.service.UserService;
 import org.slf4j.Logger;
@@ -29,15 +27,8 @@ public class TraineeServiceImpl implements TraineeService {
     @Autowired
     private TraineeDao traineeDao;
 
-    @Autowired
-    private TrainerDao trainerDao;
-
     @Override
     public Trainee add(Trainee trainee) {
-        if (trainerDao.existsByFirstNameAndLastName(trainee.getFirstName(), trainee.getLastName())) {
-            throw new ValidationException("User " + trainee.getFirstName() + " " + trainee.getLastName()
-                    + " is already registered as trainer");
-        }
         LOG.info("Creating trainee: {} {}", trainee.getFirstName(), trainee.getLastName());
         userService.prepareForCreation(trainee);
         return traineeDao.add(trainee);
@@ -56,11 +47,6 @@ public class TraineeServiceImpl implements TraineeService {
     @Override
     public void changePassword(String username, String oldPassword, String newPassword) {
         userService.changePassword(username, oldPassword, newPassword);
-    }
-
-    @Override
-    public void setActive(String username, boolean active) {
-        userService.setActive(username, active);
     }
 
     @Override

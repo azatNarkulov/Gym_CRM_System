@@ -18,6 +18,7 @@ import com.epam.mapper.TrainingMapper;
 import com.epam.service.TrainerService;
 import com.epam.service.TrainingService;
 import com.epam.service.TrainingTypeService;
+import com.epam.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -36,13 +37,16 @@ public class TrainerController {
     private final TrainerService trainerService;
     private final TrainingService trainingService;
     private final TrainingTypeService trainingTypeService;
+    private final UserService userService;
 
     public TrainerController(TrainerService trainerService,
                              TrainingService trainingService,
-                             TrainingTypeService trainingTypeService) {
+                             TrainingTypeService trainingTypeService,
+                             UserService userService) {
         this.trainerService = trainerService;
         this.trainingService = trainingService;
         this.trainingTypeService = trainingTypeService;
+        this.userService = userService;
     }
 
     @Operation(summary = "Register new trainer profile")
@@ -110,7 +114,7 @@ public class TrainerController {
             @RequestAttribute(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR) String authenticated,
             @Valid @RequestBody ActivationRequest request) {
         requireSelf(username, authenticated);
-        trainerService.setActive(username, request.getIsActive());
+        userService.setActive(username, request.getIsActive());
         return ResponseEntity.ok().build();
     }
 

@@ -23,6 +23,7 @@ import com.epam.mapper.TrainingMapper;
 import com.epam.service.TraineeService;
 import com.epam.service.TrainerService;
 import com.epam.service.TrainingService;
+import com.epam.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -41,13 +42,16 @@ public class TraineeController {
     private final TraineeService traineeService;
     private final TrainerService trainerService;
     private final TrainingService trainingService;
+    private final UserService userService;
 
     public TraineeController(TraineeService traineeService,
                              TrainerService trainerService,
-                             TrainingService trainingService) {
+                             TrainingService trainingService,
+                             UserService userService) {
         this.traineeService = traineeService;
         this.trainerService = trainerService;
         this.trainingService = trainingService;
+        this.userService = userService;
     }
 
     @Operation(summary = "Register new trainee profile")
@@ -158,7 +162,7 @@ public class TraineeController {
             @RequestAttribute(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR) String authenticated,
             @Valid @RequestBody ActivationRequest request) {
         requireSelf(username, authenticated);
-        traineeService.setActive(username, request.getIsActive());
+        userService.setActive(username, request.getIsActive());
         return ResponseEntity.ok().build();
     }
 

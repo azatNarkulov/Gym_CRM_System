@@ -14,8 +14,6 @@ public interface TraineeService {
 
     void changePassword(String username, String oldPassword, String newPassword);
 
-    void setActive(String username, boolean active);
-
     boolean deleteByUsername(String username);
 
     void updateTrainers(String traineeUsername, List<String> trainerUsernames);

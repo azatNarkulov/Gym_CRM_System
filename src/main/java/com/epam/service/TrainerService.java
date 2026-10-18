@@ -14,7 +14,5 @@ public interface TrainerService {
 
     void changePassword(String username, String oldPassword, String newPassword);
 
-    void setActive(String username, boolean active);
-
     List<Trainer> getTrainersNotAssignedToTrainee(String traineeUsername);
 }

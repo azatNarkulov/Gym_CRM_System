@@ -3,9 +3,7 @@ package com.epam.service;
 import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
 import com.epam.exception.UserNotFoundException;
-import com.epam.exception.ValidationException;
 import com.epam.repository.TraineeDao;
-import com.epam.repository.TrainerDao;
 import com.epam.service.impl.TraineeServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,9 +30,6 @@ public class TraineeServiceImplTest {
     private TraineeDao traineeDao;
 
     @Mock
-    private TrainerDao trainerDao;
-
-    @Mock
     private UserService userService;
 
     @Test
@@ -45,14 +40,6 @@ public class TraineeServiceImplTest {
         assertSame(trainee, traineeService.add(trainee));
         verify(userService).prepareForCreation(trainee);
         verify(traineeDao).add(trainee);
-    }
-
-    @Test
-    public void shouldRejectTraineeRegistrationWhenTrainerExists() {
-        Trainee trainee = generateTrainee();
-        when(trainerDao.existsByFirstNameAndLastName("Bilbo", "Baggins")).thenReturn(true);
-
-        assertThrows(ValidationException.class, () -> traineeService.add(trainee));
     }
 
     @Test
@@ -77,18 +64,6 @@ public class TraineeServiceImplTest {
     public void shouldDelegateChangePassword() {
         traineeService.changePassword("Bilbo.Baggins", "password12", "password99");
         verify(userService).changePassword("Bilbo.Baggins", "password12", "password99");
-    }
-
-    @Test
-    public void shouldDelegateSetActiveTrue() {
-        traineeService.setActive("Bilbo.Baggins", true);
-        verify(userService).setActive("Bilbo.Baggins", true);
-    }
-
-    @Test
-    public void shouldDelegateSetActiveFalse() {
-        traineeService.setActive("Bilbo.Baggins", false);
-        verify(userService).setActive("Bilbo.Baggins", false);
     }
 
     @Test

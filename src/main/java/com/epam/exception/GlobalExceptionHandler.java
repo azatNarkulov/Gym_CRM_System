@@ -19,22 +19,26 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFound(UserNotFoundException e) {
-        return build(HttpStatus.NOT_FOUND, e.getMessage());
+        LOG.warn("User not found", e);
+        return build(HttpStatus.NOT_FOUND, "User not found");
     }
 
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(ValidationException e) {
+        LOG.warn("Validation failed", e);
         return build(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiErrorResponse> handleAuth(AuthenticationException e) {
-        return build(HttpStatus.UNAUTHORIZED, e.getMessage());
+        LOG.warn("Authentication failed", e);
+        return build(HttpStatus.UNAUTHORIZED, "Authentication failed");
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiErrorResponse> handleDenied(AccessDeniedException e) {
-        return build(HttpStatus.FORBIDDEN, e.getMessage());
+        LOG.warn("Access denied", e);
+        return build(HttpStatus.FORBIDDEN, "Access denied");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -42,11 +46,13 @@ public class GlobalExceptionHandler {
         String message = e.getBindingResult().getFieldErrors().stream()
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
                 .collect(Collectors.joining("; "));
+        LOG.warn("Request validation failed: {}", message);
         return build(HttpStatus.BAD_REQUEST, message);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+        LOG.warn("Type mismatch for parameter: {}", e.getName());
         return build(HttpStatus.BAD_REQUEST, "Invalid value for parameter: " + e.getName());
     }
 
@@ -57,10 +63,7 @@ public class GlobalExceptionHandler {
     }
 
     private ResponseEntity<ApiErrorResponse> build(HttpStatus status, String message) {
-        ApiErrorResponse body = new ApiErrorResponse(
-                status.value(),
-                status.getReasonPhrase(),
-                message);
+        ApiErrorResponse body = new ApiErrorResponse(status.getReasonPhrase(), message);
         return ResponseEntity.status(status).body(body);
     }
 }

@@ -63,7 +63,7 @@ public class GlobalExceptionHandler {
     }
 
     private ResponseEntity<ApiErrorResponse> build(HttpStatus status, String message) {
-        ApiErrorResponse body = new ApiErrorResponse(status.getReasonPhrase(), message);
+        ApiErrorResponse body = new ApiErrorResponse(message);
         return ResponseEntity.status(status).body(body);
     }
 }

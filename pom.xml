@@ -178,5 +178,11 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>swagger-ui</artifactId>
+            <version>5.20.1</version>
+        </dependency>
+
     </dependencies>
 </project>

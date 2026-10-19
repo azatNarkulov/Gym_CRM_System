@@ -79,9 +79,7 @@ public class AuthenticationFilter implements Filter {
     private boolean isPublic(HttpServletRequest request) {
         String path = request.getRequestURI();
         String method = request.getMethod();
-        return "POST".equals(method) && (
-                "/api/trainees/register".equals(path) ||
-                        "/api/trainers/register".equals(path));
+        return "POST".equals(method) && ("/api/trainees/register".equals(path) || "/api/trainers/register".equals(path));
     }
 
     private void writeUnauthorized(HttpServletResponse response, HttpServletRequest request)
@@ -91,7 +89,6 @@ public class AuthenticationFilter implements Filter {
         response.setCharacterEncoding("UTF-8");
 
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("error", "Unauthorized");
         body.put("message", "Invalid username or password");
         body.put("path", request.getRequestURI());
         body.put("transactionId", MDC.get(TransactionIdFilter.MDC_KEY));

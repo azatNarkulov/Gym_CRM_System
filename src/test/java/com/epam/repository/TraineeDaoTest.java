@@ -27,6 +27,9 @@ public class TraineeDaoTest {
     private EntityManager entityManager;
 
     @Mock
+    private Query traineeTrainerQuery;
+
+    @Mock
     private Query traineeQuery;
 
     @Mock
@@ -49,23 +52,28 @@ public class TraineeDaoTest {
 
     @Test
     public void shouldUseBothQueriesWhenDelete() {
-        when(entityManager.createNativeQuery(anyString())).thenReturn(traineeQuery, userQuery);
+        when(entityManager.createNativeQuery(anyString())).thenReturn(traineeTrainerQuery, traineeQuery, userQuery);
+        when(traineeTrainerQuery.setParameter(anyString(), any())).thenReturn(traineeTrainerQuery);
         when(traineeQuery.setParameter(anyString(), any())).thenReturn(traineeQuery);
         when(userQuery.setParameter(anyString(), any())).thenReturn(userQuery);
+        when(traineeTrainerQuery.executeUpdate()).thenReturn(1);
         when(traineeQuery.executeUpdate()).thenReturn(1);
         when(userQuery.executeUpdate()).thenReturn(1);
 
         assertTrue(traineeDao.delete("Bilbo.Baggins"));
 
+        verify(traineeTrainerQuery).executeUpdate();
         verify(traineeQuery).executeUpdate();
         verify(userQuery).executeUpdate();
     }
 
     @Test
     public void shouldReturnFalseWhenDeleteAndUserNotFound() {
-        when(entityManager.createNativeQuery(anyString())).thenReturn(traineeQuery, userQuery);
+        when(entityManager.createNativeQuery(anyString())).thenReturn(traineeTrainerQuery, traineeQuery, userQuery);
+        when(traineeTrainerQuery.setParameter(anyString(), any())).thenReturn(traineeTrainerQuery);
         when(traineeQuery.setParameter(anyString(), any())).thenReturn(traineeQuery);
         when(userQuery.setParameter(anyString(), any())).thenReturn(userQuery);
+        when(traineeTrainerQuery.executeUpdate()).thenReturn(0);
         when(traineeQuery.executeUpdate()).thenReturn(0);
         when(userQuery.executeUpdate()).thenReturn(0);
 

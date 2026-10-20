@@ -1,7 +1,6 @@
 package com.epam.service;
 
 import com.epam.domain.Trainee;
-import com.epam.exception.AuthenticationException;
 import com.epam.exception.UserNotFoundException;
 import com.epam.exception.ValidationException;
 import com.epam.repository.UserDao;
@@ -39,7 +38,6 @@ public class UserServiceImplTest {
     @Test
     public void shouldGeneratePasswordWithCorrectLength() {
         String password = userService.generatePassword();
-
         assertNotNull(password);
         assertEquals(10, password.length());
     }
@@ -48,7 +46,6 @@ public class UserServiceImplTest {
     public void shouldGenerateDifferentPasswords() {
         String firstPassword = userService.generatePassword();
         String secondPassword = userService.generatePassword();
-
         assertNotEquals(firstPassword, secondPassword);
     }
 
@@ -66,7 +63,6 @@ public class UserServiceImplTest {
     @Test
     public void shouldGenerateUsernameWithSuffixWhenBaseUsernameExists() {
         Trainee trainee = generateUser();
-
         when(userDao.existsByUsername("Bilbo.Baggins")).thenReturn(true);
         when(userDao.existsByUsername("Bilbo.Baggins1")).thenReturn(false);
 
@@ -78,7 +74,6 @@ public class UserServiceImplTest {
     @Test
     public void shouldAddSuffixWhenUsernameTakenByOtherUser() {
         Trainee trainee = generateUser();
-
         when(userDao.existsByUsername("Bilbo.Baggins")).thenReturn(true);
         when(userDao.existsByUsername("Bilbo.Baggins1")).thenReturn(false);
 
@@ -86,24 +81,21 @@ public class UserServiceImplTest {
     }
 
     @Test
-    public void shouldGenerateCredentialsAndPersist() {
+    public void shouldPrepareCredentialsForUserCreation() {
         Trainee trainee = generateUser();
         when(userDao.existsByUsername("Bilbo.Baggins")).thenReturn(false);
-        when(userDao.add(trainee)).thenReturn(trainee);
 
-        Trainee result = (Trainee) userService.add(trainee);
+        userService.prepareForCreation(trainee);
 
-        assertSame(trainee, result);
-        assertEquals("Bilbo.Baggins", result.getUsername());
-        assertNotNull(result.getPassword());
-        verify(userDao).add(trainee);
+        assertEquals("Bilbo.Baggins", trainee.getUsername());
+        assertNotNull(trainee.getPassword());
     }
 
     @Test
     public void shouldThrowExceptionWhenFirstNameIsNull() {
         Trainee trainee = new Trainee();
         trainee.setLastName("Baggins");
-        assertThrows(ValidationException.class, () -> userService.add(trainee));
+        assertThrows(ValidationException.class, () -> userService.prepareForCreation(trainee));
         verifyNoInteractions(userDao);
     }
 
@@ -112,11 +104,11 @@ public class UserServiceImplTest {
         Trainee trainee = new Trainee();
         trainee.setFirstName("Bilbo");
         trainee.setLastName("");
-        assertThrows(ValidationException.class, () -> userService.add(trainee));
+        assertThrows(ValidationException.class, () -> userService.prepareForCreation(trainee));
     }
 
     @Test
-    public void shouldPreservePasswordAndIsActive() {
+    public void shouldUpdateIsActiveAndPreservePassword() {
         Trainee existingTrainee = generateUser();
         existingTrainee.setId(1L);
         existingTrainee.setUsername("Bilbo.Baggins");
@@ -129,44 +121,36 @@ public class UserServiceImplTest {
         traineeToUpdate.setPassword("password99");
         traineeToUpdate.setActive(false);
 
-        when(userDao.findByUsername("Bilbo.Baggins")).thenReturn(Optional.of(existingTrainee));
         when(userDao.get(1L)).thenReturn(existingTrainee);
         when(userDao.update(any())).thenReturn(traineeToUpdate);
 
-        userService.update("Bilbo.Baggins", "password12", traineeToUpdate);
+        userService.update(traineeToUpdate);
 
         assertEquals("password12", traineeToUpdate.getPassword());
-        assertTrue(traineeToUpdate.isActive());
+        assertFalse(traineeToUpdate.isActive());
     }
 
     @Test
     public void shouldThrowExceptionWhenIdIsNull() {
-        Trainee auth = generateUser();
-        auth.setPassword("password12");
-        auth.setActive(true);
-        when(userDao.findByUsername("Bilbo.Baggins")).thenReturn(Optional.of(auth));
-
         Trainee trainee = generateUser();
-        assertThrows(UserNotFoundException.class, () -> userService.update("Bilbo.Baggins", "password12", trainee));
+        assertThrows(UserNotFoundException.class, () -> userService.update(trainee));
     }
 
     @Test
-    public void shouldThrowWhenUsernameTakenByAnother() {
-        Trainee auth = generateUser();
-        auth.setId(1L);
-        auth.setUsername("Bilbo.Baggins");
-        auth.setPassword("password12");
-        auth.setActive(true);
-        when(userDao.findByUsername("Bilbo.Baggins")).thenReturn(Optional.of(auth));
+    public void shouldThrowWhenTryingToUpdateUsername() {
+        Trainee existing = generateUser();
+        existing.setId(1L);
+        existing.setUsername("Bilbo.Baggins");
+        existing.setPassword("password12");
+        existing.setActive(true);
 
         Trainee traineeToUpdate = generateUser();
         traineeToUpdate.setId(1L);
         traineeToUpdate.setUsername("Frodo.Baggins");
 
-        when(userDao.get(1L)).thenReturn(auth);
-        when(userDao.existsByUsername("Frodo.Baggins")).thenReturn(true);
+        when(userDao.get(1L)).thenReturn(existing);
 
-        assertThrows(ValidationException.class, () -> userService.update("Bilbo.Baggins", "password12", traineeToUpdate));
+        assertThrows(ValidationException.class, () -> userService.update(traineeToUpdate));
     }
 
     @Test
@@ -177,11 +161,10 @@ public class UserServiceImplTest {
         existingTrainee.setPassword("password12");
         existingTrainee.setActive(true);
 
-        when(userDao.findByUsername("Bilbo.Baggins")).thenReturn(Optional.of(existingTrainee));
         when(userDao.get(1L)).thenReturn(existingTrainee);
         when(userDao.update(any())).thenReturn(existingTrainee);
 
-        userService.update("Bilbo.Baggins", "password12", existingTrainee);
+        userService.update(existingTrainee);
 
         verify(userDao).update(existingTrainee);
     }
@@ -189,24 +172,21 @@ public class UserServiceImplTest {
     @Test
     public void shouldFindByUsername() {
         Trainee trainee = generateUser();
-        trainee.setPassword("password12");
-        trainee.setActive(true);
         when(userDao.findByUsername("Bilbo.Baggins")).thenReturn(Optional.of(trainee));
 
-        assertSame(trainee, userService.findByUsername("Bilbo.Baggins", "password12"));
+        assertSame(trainee, userService.findByUsername("Bilbo.Baggins"));
     }
 
     @Test
-    public void shouldThrowExceptionWhenTraineeNotFound() {
+    public void shouldThrowExceptionWhenUserNotFound() {
         when(userDao.findByUsername("Frodo.Baggins")).thenReturn(Optional.empty());
-        assertThrows(AuthenticationException.class, () -> userService.findByUsername("Frodo.Baggins", "password12"));
+        assertThrows(UserNotFoundException.class, () -> userService.findByUsername("Frodo.Baggins"));
     }
 
     @Test
     public void shouldUpdatePassword() {
         Trainee trainee = generateUser();
         trainee.setPassword("password12");
-        trainee.setActive(true);
         when(userDao.findByUsername("Bilbo.Baggins")).thenReturn(Optional.of(trainee));
 
         userService.changePassword("Bilbo.Baggins", "password12", "password99");
@@ -217,46 +197,42 @@ public class UserServiceImplTest {
     @Test
     public void shouldActivate() {
         Trainee trainee = generateUser();
-        trainee.setPassword("password12");
         trainee.setActive(false);
         when(userDao.findByUsername("Bilbo.Baggins")).thenReturn(Optional.of(trainee));
 
-        userService.activate("Bilbo.Baggins", "password12");
+        userService.setActive("Bilbo.Baggins", true);
         assertTrue(trainee.isActive());
     }
 
     @Test
-    public void shouldThrowExceptionWhenTraineeIsActivated() {
+    public void shouldThrowExceptionWhenUserAlreadyActive() {
         Trainee trainee = generateUser();
-        trainee.setPassword("password12");
         trainee.setActive(true);
         when(userDao.findByUsername("Bilbo.Baggins")).thenReturn(Optional.of(trainee));
 
-        assertThrows(ValidationException.class, () -> userService.activate("Bilbo.Baggins", "password12"));
+        assertThrows(ValidationException.class, () -> userService.setActive("Bilbo.Baggins", true));
         verify(userDao, never()).update(any());
     }
 
     @Test
     public void shouldDeactivate() {
         Trainee trainee = generateUser();
-        trainee.setPassword("password12");
         trainee.setActive(true);
         when(userDao.findByUsername("Bilbo.Baggins")).thenReturn(Optional.of(trainee));
 
-        userService.deactivate("Bilbo.Baggins", "password12");
+        userService.setActive("Bilbo.Baggins", false);
 
         assertFalse(trainee.isActive());
         verify(userDao).update(trainee);
     }
 
     @Test
-    public void shouldThrowExceptionWhenTraineeIsDeactivated() {
+    public void shouldThrowExceptionWhenUserAlreadyDeactivated() {
         Trainee trainee = generateUser();
-        trainee.setPassword("password12");
         trainee.setActive(false);
         when(userDao.findByUsername("Bilbo.Baggins")).thenReturn(Optional.of(trainee));
 
-        assertThrows(AuthenticationException.class, () -> userService.deactivate("Bilbo.Baggins", "password12"));
+        assertThrows(ValidationException.class, () -> userService.setActive("Bilbo.Baggins", false));
     }
 
     @Test

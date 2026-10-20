@@ -6,6 +6,8 @@ import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 public abstract class AbstractDao<T extends BaseEntity> {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractDao.class);
@@ -24,7 +26,14 @@ public abstract class AbstractDao<T extends BaseEntity> {
         return entityManager.find(getEntityClass(), id);
     }
 
+    public List<T> findAll() {
+        LOG.debug("Finding all entities using query: {}", getFindAllQuery());
+        return entityManager.createQuery(getFindAllQuery(), getEntityClass()).getResultList();
+    }
+
     protected abstract Class<T> getEntityClass();
+
+    protected abstract String getFindAllQuery();
 
     protected EntityManager getEntityManager() {
         return entityManager;

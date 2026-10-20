@@ -8,19 +8,13 @@ public interface TraineeService {
 
     Trainee add(Trainee trainee);
 
-    Trainee update(String username, String password, Trainee trainee);
+    Trainee update(Trainee trainee);
 
-    Trainee findByUsername(String username, String password);
+    Trainee findByUsername(String username);
 
     void changePassword(String username, String oldPassword, String newPassword);
 
-    void activate(String username, String password);
+    boolean deleteByUsername(String username);
 
-    void deactivate(String username, String password);
-
-    boolean matchCredentials(String username, String password);
-
-    boolean deleteByUsername(String username, String password);
-
-    void updateTrainers(String traineeUsername, String password, List<String> trainerUsernames);
+    void updateTrainers(String traineeUsername, List<String> trainerUsernames);
 }

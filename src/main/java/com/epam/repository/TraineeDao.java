@@ -10,14 +10,22 @@ public class TraineeDao extends AbstractDao<Trainee> {
 
     private static final Logger LOG = LoggerFactory.getLogger(TraineeDao.class);
 
-    private static final String QUERY_DELETE_TRAINEE_BY_USERNAME = "DELETE FROM trainees WHERE id IN " +
-            "(SELECT id FROM users WHERE username = :username)";
+    private static final String QUERY_DELETE_TRAINEE_BY_USERNAME =
+            "DELETE FROM trainees WHERE id IN (SELECT id FROM users WHERE username = :username)";
     private static final String QUERY_DELETE_USER_BY_USERNAME = "DELETE FROM users WHERE username = :username";
+    private static final String QUERY_DELETE_TRAINEE_TRAINERS_BY_USERNAME = "DELETE FROM trainee_trainer " +
+            "WHERE trainee_id IN (SELECT id FROM users WHERE username = :username)";
+    private static final String QUERY_FIND_ALL = "SELECT t FROM Trainee t";
 
     public boolean delete(String username) {
         if (username == null || username.isBlank()) {
             return false;
         }
+
+        getEntityManager()
+                .createNativeQuery(QUERY_DELETE_TRAINEE_TRAINERS_BY_USERNAME)
+                .setParameter("username", username)
+                .executeUpdate();
 
         getEntityManager()
                 .createNativeQuery(QUERY_DELETE_TRAINEE_BY_USERNAME)
@@ -36,5 +44,10 @@ public class TraineeDao extends AbstractDao<Trainee> {
     @Override
     protected Class<Trainee> getEntityClass() {
         return Trainee.class;
+    }
+
+    @Override
+    protected String getFindAllQuery() {
+        return QUERY_FIND_ALL;
     }
 }

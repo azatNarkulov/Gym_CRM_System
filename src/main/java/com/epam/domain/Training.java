@@ -29,14 +29,14 @@ public class Training extends BaseEntity {
     @JoinColumn(name = "trainer_id", nullable = false)
     private Trainer trainer;
 
-    @Column(nullable = false)
+    @Column(name = "training_name", nullable = false)
     private String trainingName;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "training_type_id", nullable = false)
     private TrainingType trainingType;
 
-    @Column(nullable = false)
+    @Column(name = "training_date", nullable = false)
     private LocalDate trainingDate;
 
     @Column(name = "training_duration", nullable = false)

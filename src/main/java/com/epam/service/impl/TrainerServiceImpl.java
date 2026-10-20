@@ -28,19 +28,20 @@ public class TrainerServiceImpl implements TrainerService {
     @Override
     public Trainer add(Trainer trainer) {
         validateRequiredSpecialization(trainer);
-        return (Trainer) userService.add(trainer);
+        LOG.info("Creating trainer: {} {}", trainer.getFirstName(), trainer.getLastName());
+        userService.prepareForCreation(trainer);
+        return trainerDao.add(trainer);
     }
 
     @Override
-    public Trainer update(String username, String password, Trainer trainer) {
-        userService.checkCredentials(username, password);
+    public Trainer update(Trainer trainer) {
         validateRequiredSpecialization(trainer);
-        return (Trainer) userService.updateInternal(trainer);
+        return (Trainer) userService.update(trainer);
     }
 
     @Override
-    public Trainer findByUsername(String username, String password) {
-        return (Trainer) userService.findByUsername(username, password);
+    public Trainer findByUsername(String username) {
+        return (Trainer) userService.findByUsername(username);
     }
 
     @Override
@@ -49,23 +50,7 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public void activate(String username, String password) {
-        userService.activate(username, password);
-    }
-
-    @Override
-    public void deactivate(String username, String password) {
-        userService.deactivate(username, password);
-    }
-
-    @Override
-    public boolean matchCredentials(String username, String password) {
-        return userService.matchCredentials(username, password);
-    }
-
-    @Override
-    public List<Trainer> getTrainersNotAssignedToTrainee(String traineeUsername, String password) {
-        userService.checkCredentials(traineeUsername, password);
+    public List<Trainer> getTrainersNotAssignedToTrainee(String traineeUsername) {
         LOG.debug("Get trainers not assigned to trainee {}", traineeUsername);
         return trainerDao.findNotAssignedByTrainee(traineeUsername);
     }

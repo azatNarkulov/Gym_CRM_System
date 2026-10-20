@@ -6,7 +6,7 @@ import com.epam.domain.Trainer;
 import com.epam.domain.Training;
 import com.epam.domain.TrainingType;
 import com.epam.domain.TrainingTypeName;
-import com.epam.exception.ValidationException;
+import com.epam.dto.request.AddTrainingRequest;
 import com.epam.repository.TrainingDao;
 import com.epam.service.impl.TrainingServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -19,10 +19,11 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,69 +38,37 @@ public class TrainingServiceImplTest {
     @Mock
     private UserService userService;
 
-    @Test
-        public void shouldPersistTraining() {
-        Training training = generateTraining();
-        when(trainingDao.add(training)).thenReturn(training);
-
-        Training result = trainingService.add("Bilbo.Baggins", "password12", training);
-
-        assertSame(training, result);
-        verify(trainingDao).add(training);
-    }
-    
-    @Test
-    public void shouldThrowExceptionWhenTraineeIsNull() {
-        Training training = generateTraining();
-        training.setTrainee(null);
-        
-        assertThrows(ValidationException.class, () -> trainingService.add("Bilbo.Baggins", "password12", training));
-        verifyNoInteractions(trainingDao);
-    }
+    @Mock
+    private TrainingTypeService trainingTypeService;
 
     @Test
-    public void shouldThrowExceptionWhenTrainerIsNull() {
-        Training training = generateTraining();
-        training.setTrainer(null);
+    public void shouldPersistTraining() {
+        Trainee trainee = new Trainee();
+        Trainer trainer = new Trainer();
+        TrainingType specialization = generateTrainingType();
+        trainer.setSpecialization(specialization);
 
-        assertThrows(ValidationException.class, () -> trainingService.add("Bilbo.Baggins", "password12", training));
-        verifyNoInteractions(trainingDao);
-    }
+        AddTrainingRequest request = new AddTrainingRequest();
+        request.setTraineeUsername("Bilbo.Baggins");
+        request.setTrainerUsername("Gandalf.Grey");
+        request.setTrainingName("Saturday Fitness");
+        request.setTrainingDate(LocalDate.of(2026, 10, 15));
+        request.setTrainingDuration(Duration.ofHours(1));
+        request.setTrainingType("FITNESS");
 
-    @Test
-    public void shouldThrowExceptionWhenTrainingTypeIsNull() {
-        Training training = generateTraining();
-        training.setTrainingType(null);
+        when(userService.findByUsername("Bilbo.Baggins")).thenReturn(trainee);
+        when(userService.findByUsername("Gandalf.Grey")).thenReturn(trainer);
+        when(trainingTypeService.findByName(TrainingTypeName.FITNESS)).thenReturn(specialization);
+        when(trainingDao.add(any(Training.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        assertThrows(ValidationException.class, () -> trainingService.add("Bilbo.Baggins", "password12", training));
-        verifyNoInteractions(trainingDao);
-    }
+        Training result = trainingService.add(request);
 
-    @Test
-    public void shouldThrowExceptionWhenTrainingNameIsBlank() {
-        Training training = generateTraining();
-        training.setTrainingName(" ");
-
-        assertThrows(ValidationException.class, () -> trainingService.add("Bilbo.Baggins", "password12", training));
-        verifyNoInteractions(trainingDao);
-    }
-
-    @Test
-    public void shouldThrowExceptionWhenTrainingDateIsNull() {
-        Training training = generateTraining();
-        training.setTrainingDate(null);
-
-        assertThrows(ValidationException.class, () -> trainingService.add("Bilbo.Baggins", "password12", training));
-        verifyNoInteractions(trainingDao);
-    }
-
-    @Test
-    public void shouldThrowExceptionWhenTrainingDurationIsNull() {
-        Training training = generateTraining();
-        training.setTrainingDuration(null);
-
-        assertThrows(ValidationException.class, () -> trainingService.add("Bilbo.Baggins", "password12", training));
-        verifyNoInteractions(trainingDao);
+        assertNotNull(result);
+        assertSame(trainee, result.getTrainee());
+        assertSame(trainer, result.getTrainer());
+        assertSame(specialization, result.getTrainingType());
+        assertEquals("Saturday Fitness", result.getTrainingName());
+        verify(trainingDao).add(any(Training.class));
     }
     
     @Test
@@ -112,7 +81,7 @@ public class TrainingServiceImplTest {
         
         when(trainingDao.findByTraineeUsernameAndCriteria(filter)).thenReturn(trainings);
         
-        List<Training> result = trainingService.getTraineeTrainings("Bilbo.Baggins", "password12", filter);
+        List<Training> result = trainingService.getTraineeTrainings("Bilbo.Baggins", filter);
         
         assertSame(trainings, result);
         verify(trainingDao).findByTraineeUsernameAndCriteria(filter);
@@ -128,7 +97,7 @@ public class TrainingServiceImplTest {
 
         when(trainingDao.findByTrainerUsernameAndCriteria(filter)).thenReturn(trainings);
 
-        List<Training> result = trainingService.getTrainerTrainings("Bilbo.Baggins", "password12", filter);
+        List<Training> result = trainingService.getTrainerTrainings("Bilbo.Baggins", filter);
 
         assertSame(trainings, result);
         verify(trainingDao).findByTrainerUsernameAndCriteria(filter);

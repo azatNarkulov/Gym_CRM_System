@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,6 +30,14 @@ public class TrainerDaoTest {
 
     @Mock
     private TypedQuery<Trainer> trainerQuery;
+
+    @Test
+    public void shouldAddTrainer() {
+        Trainer trainer = new Trainer();
+
+        assertSame(trainer, trainerDao.add(trainer));
+        verify(entityManager).persist(trainer);
+    }
 
     @Test
     public void shouldFindNotAssignedByTrainee() {

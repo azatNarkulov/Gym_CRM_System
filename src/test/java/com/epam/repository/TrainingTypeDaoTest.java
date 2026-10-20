@@ -10,8 +10,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -55,5 +57,13 @@ public class TrainingTypeDaoTest {
         when(entityManager.find(TrainingType.class, 1L)).thenReturn(trainingType);
 
         assertSame(trainingType, trainingTypeDao.get(1L));
+    }
+
+    @Test
+    public void shouldFindAll() {
+        when(entityManager.createQuery(anyString(), eq(TrainingType.class))).thenReturn(query);
+        when(query.getResultList()).thenReturn(List.of(new TrainingType(), new TrainingType()));
+
+        assertEquals(2, trainingTypeDao.findAll().size());
     }
 }

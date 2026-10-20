@@ -16,7 +16,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -34,14 +33,15 @@ public class TrainerServiceImplTest {
     private UserService userService;
 
     @Test
-    public void shouldDelegateAdd() {
+    public void shouldCreateTrainer() {
         Trainer trainer = generateTrainer();
         trainer.setSpecialization(generateSpecialization());
 
-        when(userService.add(trainer)).thenReturn(trainer);
+        when(trainerDao.add(trainer)).thenReturn(trainer);
 
         assertSame(trainer, trainerService.add(trainer));
-        verify(userService).add(trainer);
+        verify(userService).prepareForCreation(trainer);
+        verify(trainerDao).add(trainer);
     }
 
     @Test
@@ -57,13 +57,10 @@ public class TrainerServiceImplTest {
     public void shouldDelegateUpdate() {
         Trainer trainer = generateTrainer();
         trainer.setSpecialization(generateSpecialization());
+        when(userService.update(trainer)).thenReturn(trainer);
 
-        when(userService.updateInternal(trainer)).thenReturn(trainer);
-
-        assertSame(trainer, trainerService.update("Bilbo.Baggins", "password12", trainer));
-
-        verify(userService).checkCredentials("Bilbo.Baggins", "password12");
-        verify(userService).updateInternal(trainer);
+        assertSame(trainer, trainerService.update(trainer));
+        verify(userService).update(trainer);
     }
 
     @Test
@@ -71,16 +68,16 @@ public class TrainerServiceImplTest {
         Trainer trainer = generateTrainer();
         trainer.setSpecialization(null);
 
-        assertThrows(ValidationException.class, () -> trainerService.update("Bilbo.Baggins", "password12", trainer));
+        assertThrows(ValidationException.class, () -> trainerService.update(trainer));
     }
 
     @Test
     public void shouldDelegateFindByUsername() {
         Trainer trainer = generateTrainer();
-        when(userService.findByUsername("Bilbo.Baggins", "password12")).thenReturn(trainer);
+        when(userService.findByUsername("Bilbo.Baggins")).thenReturn(trainer);
 
-        assertSame(trainer, trainerService.findByUsername("Bilbo.Baggins", "password12"));
-        verify(userService).findByUsername("Bilbo.Baggins", "password12");
+        assertSame(trainer, trainerService.findByUsername("Bilbo.Baggins"));
+        verify(userService).findByUsername("Bilbo.Baggins");
     }
 
     @Test
@@ -90,33 +87,12 @@ public class TrainerServiceImplTest {
     }
 
     @Test
-    public void shouldDelegateActivate() {
-        trainerService.activate("Bilbo.Baggins", "password12");
-        verify(userService).activate("Bilbo.Baggins", "password12");
-    }
-
-    @Test
-    public void shouldDelegateDeactivate() {
-        trainerService.deactivate("Bilbo.Baggins", "password12");
-        verify(userService).deactivate("Bilbo.Baggins", "password12");
-    }
-
-    @Test
-    public void shouldDelegateMatchCredentials() {
-        when(userService.matchCredentials("Bilbo.Baggins", "password12")).thenReturn(true);
-
-        assertTrue(trainerService.matchCredentials("Bilbo.Baggins", "password12"));
-        verify(userService).matchCredentials("Bilbo.Baggins", "password12");
-    }
-
-    @Test
     public void shouldGetTrainersNotAssignedToTrainee() {
         List<Trainer> trainers = List.of(generateTrainer());
         when(trainerDao.findNotAssignedByTrainee("Bilbo.Baggins")).thenReturn(trainers);
         
-        assertSame(trainers, trainerService.getTrainersNotAssignedToTrainee("Bilbo.Baggins", "password12"));
+        assertSame(trainers, trainerService.getTrainersNotAssignedToTrainee("Bilbo.Baggins"));
         
-        verify(userService).checkCredentials("Bilbo.Baggins", "password12");
         verify(trainerDao).findNotAssignedByTrainee("Bilbo.Baggins");
     }
 

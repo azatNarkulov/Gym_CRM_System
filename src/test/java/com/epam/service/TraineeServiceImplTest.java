@@ -33,30 +33,31 @@ public class TraineeServiceImplTest {
     private UserService userService;
 
     @Test
-    public void shouldDelegateAdd() {
-        Trainee trainee = new Trainee();
-        when(userService.add(trainee)).thenReturn(trainee);
+    public void shouldAddTrainee() {
+        Trainee trainee = generateTrainee();
+        when(traineeDao.add(trainee)).thenReturn(trainee);
 
         assertSame(trainee, traineeService.add(trainee));
-        verify(userService).add(trainee);
+        verify(userService).prepareForCreation(trainee);
+        verify(traineeDao).add(trainee);
     }
 
     @Test
     public void shouldDelegateUpdate() {
         Trainee trainee = new Trainee();
-        when(userService.update("Bilbo.Baggins", "password12", trainee)).thenReturn(trainee);
+        when(userService.update(trainee)).thenReturn(trainee);
 
-        assertSame(trainee, traineeService.update("Bilbo.Baggins", "password12", trainee));
-        verify(userService).update("Bilbo.Baggins", "password12", trainee);
+        assertSame(trainee, traineeService.update(trainee));
+        verify(userService).update(trainee);
     }
 
     @Test
     public void shouldDelegateFindByUsername() {
         Trainee trainee = new Trainee();
-        when(userService.findByUsername("Bilbo.Baggins", "password12")).thenReturn(trainee);
+        when(userService.findByUsername("Bilbo.Baggins")).thenReturn(trainee);
 
-        assertSame(trainee, traineeService.findByUsername("Bilbo.Baggins", "password12"));
-        verify(userService).findByUsername("Bilbo.Baggins", "password12");
+        assertSame(trainee, traineeService.findByUsername("Bilbo.Baggins"));
+        verify(userService).findByUsername("Bilbo.Baggins");
     }
 
     @Test
@@ -66,49 +67,28 @@ public class TraineeServiceImplTest {
     }
 
     @Test
-    public void shouldDelegateActivate() {
-        traineeService.activate("Bilbo.Baggins", "password12");
-        verify(userService).activate("Bilbo.Baggins", "password12");
-    }
-
-    @Test
-    public void shouldDelegateDeactivate() {
-        traineeService.deactivate("Bilbo.Baggins", "password12");
-        verify(userService).deactivate("Bilbo.Baggins", "password12");
-    }
-
-    @Test
-    public void shouldDelegateMatchCredentials() {
-        when(userService.matchCredentials("Bilbo.Baggins", "password12")).thenReturn(true);
-
-        assertTrue(traineeService.matchCredentials("Bilbo.Baggins", "password12"));
-        verify(userService).matchCredentials("Bilbo.Baggins", "password12");
-    }
-
-    @Test
     public void shouldDeleteByUsername() {
         when(traineeDao.delete("Bilbo.Baggins")).thenReturn(true);
 
-        assertTrue(traineeService.deleteByUsername("Bilbo.Baggins", "password12"));
+        assertTrue(traineeService.deleteByUsername("Bilbo.Baggins"));
 
-        verify(userService).checkCredentials("Bilbo.Baggins", "password12");
         verify(traineeDao).delete("Bilbo.Baggins");
     }
 
     @Test
     public void shouldUpdateTrainers() {
         Trainee trainee = generateTrainee();
-        when(userService.findByUsernameInternal("Bilbo.Baggins")).thenReturn(trainee);
+        when(userService.findByUsername("Bilbo.Baggins")).thenReturn(trainee);
 
         Trainer trainer1 = new Trainer();
         trainer1.setUsername("Trainer1");
         Trainer trainer2 = new Trainer();
         trainer2.setUsername("Trainer2");
 
-        when(userService.findByUsernameInternal("Trainer1")).thenReturn(trainer1);
-        when(userService.findByUsernameInternal("Trainer2")).thenReturn(trainer2);
+        when(userService.findByUsername("Trainer1")).thenReturn(trainer1);
+        when(userService.findByUsername("Trainer2")).thenReturn(trainer2);
 
-        traineeService.updateTrainers("Bilbo.Baggins", "password12", List.of("Trainer1", "Trainer2"));
+        traineeService.updateTrainers("Bilbo.Baggins", List.of("Trainer1", "Trainer2"));
 
         assertEquals(2, trainee.getTrainers().size());
     }
@@ -116,11 +96,11 @@ public class TraineeServiceImplTest {
     @Test
     public void shouldThrowWhenTrainerNotFound() {
         Trainee trainee = generateTrainee();
-        when(userService.findByUsernameInternal("Bilbo.Baggins")).thenReturn(trainee);
-        when(userService.findByUsernameInternal("Trainer1")).thenThrow(new UserNotFoundException());
+        when(userService.findByUsername("Bilbo.Baggins")).thenReturn(trainee);
+        when(userService.findByUsername("Trainer1")).thenThrow(new UserNotFoundException());
 
         assertThrows(UserNotFoundException.class,
-                () -> traineeService.updateTrainers("Bilbo.Baggins", "password12", List.of("Trainer1")));
+                () -> traineeService.updateTrainers("Bilbo.Baggins", List.of("Trainer1")));
     }
 
     private Trainee generateTrainee() {

@@ -27,12 +27,13 @@ public abstract class AbstractDao<T extends BaseEntity> {
     }
 
     public List<T> findAll() {
-        LOG.debug("Finding all entities of type {}", getEntityClass().getSimpleName());
-        String query = "SELECT e FROM " + getEntityClass().getSimpleName() + " e";
-        return entityManager.createQuery(query, getEntityClass()).getResultList();
+        LOG.debug("Finding all entities using query: {}", getFindAllQuery());
+        return entityManager.createQuery(getFindAllQuery(), getEntityClass()).getResultList();
     }
 
     protected abstract Class<T> getEntityClass();
+
+    protected abstract String getFindAllQuery();
 
     protected EntityManager getEntityManager() {
         return entityManager;

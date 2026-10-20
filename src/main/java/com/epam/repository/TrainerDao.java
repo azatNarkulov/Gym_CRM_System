@@ -15,6 +15,7 @@ public class TrainerDao extends AbstractDao<Trainer> {
     private static final String QUERY_FIND_NOT_ASSIGNED_BY_TRAINEE =
             "SELECT trainer FROM Trainer trainer WHERE trainer NOT IN (" +
             "    SELECT trainer2 FROM Trainee trainee JOIN trainee.trainers trainer2 WHERE trainee.username = :username)";
+    private static final String QUERY_FIND_ALL = "SELECT t FROM Trainer t";
 
     public List<Trainer> findNotAssignedByTrainee(String traineeUsername) {
         LOG.debug("Finding trainers by traineeUsername={}", traineeUsername);
@@ -26,5 +27,10 @@ public class TrainerDao extends AbstractDao<Trainer> {
     @Override
     protected Class<Trainer> getEntityClass() {
         return Trainer.class;
+    }
+
+    @Override
+    protected String getFindAllQuery() {
+        return QUERY_FIND_ALL;
     }
 }

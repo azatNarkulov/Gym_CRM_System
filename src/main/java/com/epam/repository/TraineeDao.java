@@ -15,6 +15,7 @@ public class TraineeDao extends AbstractDao<Trainee> {
     private static final String QUERY_DELETE_USER_BY_USERNAME = "DELETE FROM users WHERE username = :username";
     private static final String QUERY_DELETE_TRAINEE_TRAINERS_BY_USERNAME = "DELETE FROM trainee_trainer " +
             "WHERE trainee_id IN (SELECT id FROM users WHERE username = :username)";
+    private static final String QUERY_FIND_ALL = "SELECT t FROM Trainee t";
 
     public boolean delete(String username) {
         if (username == null || username.isBlank()) {
@@ -43,5 +44,10 @@ public class TraineeDao extends AbstractDao<Trainee> {
     @Override
     protected Class<Trainee> getEntityClass() {
         return Trainee.class;
+    }
+
+    @Override
+    protected String getFindAllQuery() {
+        return QUERY_FIND_ALL;
     }
 }

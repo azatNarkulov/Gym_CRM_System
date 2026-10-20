@@ -14,6 +14,7 @@ public class UserDao extends AbstractDao<User> {
 
     private static final String QUERY_FIND_BY_USERNAME = "SELECT u FROM User u WHERE u.username = :username";
     private static final String QUERY_EXISTS_BY_USERNAME = "SELECT 1 FROM User u WHERE u.username = :username";
+    private static final String QUERY_FIND_ALL = "SELECT u FROM User u";
 
     public <T extends User> T update(T user) {
         LOG.debug("Updating user: id={}, username={}", user.getId(), user.getUsername());
@@ -42,5 +43,10 @@ public class UserDao extends AbstractDao<User> {
     @Override
     protected Class<User> getEntityClass() {
         return User.class;
+    }
+
+    @Override
+    protected String getFindAllQuery() {
+        return QUERY_FIND_ALL;
     }
 }

@@ -19,25 +19,31 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFound(UserNotFoundException e) {
-        LOG.warn("User not found", e);
+        LOG.error("User not found", e);
         return build(HttpStatus.NOT_FOUND, "User not found");
+    }
+
+    @ExceptionHandler(TrainingTypeNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleNotFound(TrainingTypeNotFoundException e) {
+        LOG.error("Training type not found", e);
+        return build(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(ValidationException e) {
-        LOG.warn("Validation failed", e);
+        LOG.error("Validation failed", e);
         return build(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiErrorResponse> handleAuth(AuthenticationException e) {
-        LOG.warn("Authentication failed", e);
+        LOG.error("Authentication failed", e);
         return build(HttpStatus.UNAUTHORIZED, "Authentication failed");
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiErrorResponse> handleDenied(AccessDeniedException e) {
-        LOG.warn("Access denied", e);
+        LOG.error("Access denied", e);
         return build(HttpStatus.FORBIDDEN, "Access denied");
     }
 
@@ -46,13 +52,13 @@ public class GlobalExceptionHandler {
         String message = e.getBindingResult().getFieldErrors().stream()
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
                 .collect(Collectors.joining("; "));
-        LOG.warn("Request validation failed: {}", message);
+        LOG.error("Request validation failed: {}", message);
         return build(HttpStatus.BAD_REQUEST, message);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
-        LOG.warn("Type mismatch for parameter: {}", e.getName());
+        LOG.error("Type mismatch for parameter: {}", e.getName());
         return build(HttpStatus.BAD_REQUEST, "Invalid value for parameter: " + e.getName());
     }
 

@@ -2,7 +2,7 @@ package com.epam.service;
 
 import com.epam.domain.TrainingType;
 import com.epam.domain.TrainingTypeName;
-import com.epam.exception.ValidationException;
+import com.epam.exception.TrainingTypeNotFoundException;
 import com.epam.repository.TrainingTypeDao;
 import com.epam.service.impl.TrainingTypeServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -47,6 +47,6 @@ public class TrainingTypeServiceImplTest {
     public void shouldThrowWhenNotFound() {
         when(trainingTypeDao.findByName(TrainingTypeName.FITNESS)).thenReturn(Optional.empty());
 
-        assertThrows(ValidationException.class, () -> service.findByName(TrainingTypeName.FITNESS));
+        assertThrows(TrainingTypeNotFoundException.class, () -> service.findByName(TrainingTypeName.FITNESS));
     }
 }

@@ -14,6 +14,7 @@ public class TrainingTypeDao extends AbstractDao<TrainingType> {
     private static final Logger LOG = LoggerFactory.getLogger(TrainingTypeDao.class);
 
     private static final String QUERY_FIND_BY_NAME = "SELECT t FROM TrainingType t WHERE t.name = :name";
+    private static final String QUERY_FIND_ALL = "SELECT t FROM TrainingType t";
 
     public Optional<TrainingType> findByName(TrainingTypeName name) {
         LOG.debug("Finding Training type={}", name);
@@ -28,5 +29,10 @@ public class TrainingTypeDao extends AbstractDao<TrainingType> {
     @Override
     protected Class<TrainingType> getEntityClass() {
         return TrainingType.class;
+    }
+
+    @Override
+    protected String getFindAllQuery() {
+        return QUERY_FIND_ALL;
     }
 }

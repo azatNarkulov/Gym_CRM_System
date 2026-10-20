@@ -26,6 +26,7 @@ public class TrainingDao extends AbstractDao<Training> {
     private static final String FIELD_TRAINING_DATE = "trainingDate";
     private static final String FIELD_TRAINING_TYPE = "trainingType";
     private static final String FIELD_NAME = "name";
+    private static final String QUERY_FIND_ALL = "SELECT t FROM Training t";
 
     public List<Training> findByTraineeUsernameAndCriteria(TrainingFilterDTO filter) {
         LOG.debug("Finding trainee by username and criteria");
@@ -56,6 +57,16 @@ public class TrainingDao extends AbstractDao<Training> {
         return executeQuery(builder, query, predicates);
     }
 
+    @Override
+    protected Class<Training> getEntityClass() {
+        return Training.class;
+    }
+
+    @Override
+    protected String getFindAllQuery() {
+        return QUERY_FIND_ALL;
+    }
+
     private void addCommonFilters(
             CriteriaBuilder builder,
             TrainingFilterDTO filter,
@@ -79,10 +90,5 @@ public class TrainingDao extends AbstractDao<Training> {
             List<Predicate> predicates) {
         query.where(builder.and(predicates.toArray(new Predicate[0])));
         return getEntityManager().createQuery(query).getResultList();
-    }
-
-    @Override
-    protected Class<Training> getEntityClass() {
-        return Training.class;
     }
 }

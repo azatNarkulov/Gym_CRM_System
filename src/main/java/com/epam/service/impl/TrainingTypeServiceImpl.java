@@ -2,7 +2,7 @@ package com.epam.service.impl;
 
 import com.epam.domain.TrainingType;
 import com.epam.domain.TrainingTypeName;
-import com.epam.exception.ValidationException;
+import com.epam.exception.TrainingTypeNotFoundException;
 import com.epam.repository.TrainingTypeDao;
 import com.epam.service.TrainingTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +26,6 @@ public class TrainingTypeServiceImpl implements TrainingTypeService {
     @Override
     public TrainingType findByName(TrainingTypeName name) {
         return trainingTypeDao.findByName(name)
-                .orElseThrow(() -> new ValidationException("Training type with name " + name + " not found"));
+                .orElseThrow(() -> new TrainingTypeNotFoundException("Training type with name " + name + " not found"));
     }
 }

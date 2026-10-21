@@ -5,7 +5,6 @@ import com.epam.domain.TrainingTypeName;
 import com.epam.exception.TrainingTypeNotFoundException;
 import com.epam.repository.TrainingTypeDao;
 import com.epam.service.TrainingTypeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,8 +14,11 @@ import java.util.List;
 @Transactional
 public class TrainingTypeServiceImpl implements TrainingTypeService {
 
-    @Autowired
-    private TrainingTypeDao trainingTypeDao;
+    private final TrainingTypeDao trainingTypeDao;
+
+    public TrainingTypeServiceImpl(TrainingTypeDao trainingTypeDao) {
+        this.trainingTypeDao = trainingTypeDao;
+    }
 
     @Override
     public List<TrainingType> getAll() {

@@ -1,5 +1,6 @@
 package com.epam.service.impl;
 
+import com.epam.actuator.GymMetrics;
 import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
 import com.epam.repository.TraineeDao;
@@ -7,7 +8,6 @@ import com.epam.service.TraineeService;
 import com.epam.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,17 +21,23 @@ public class TraineeServiceImpl implements TraineeService {
 
     private static final Logger LOG = LoggerFactory.getLogger(TraineeServiceImpl.class);
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final TraineeDao traineeDao;
+    private final GymMetrics gymMetrics;
 
-    @Autowired
-    private TraineeDao traineeDao;
+    public TraineeServiceImpl(UserService userService, TraineeDao traineeDao, GymMetrics gymMetrics) {
+        this.userService = userService;
+        this.traineeDao = traineeDao;
+        this.gymMetrics = gymMetrics;
+    }
 
     @Override
     public Trainee add(Trainee trainee) {
         LOG.info("Creating trainee: {} {}", trainee.getFirstName(), trainee.getLastName());
         userService.prepareForCreation(trainee);
-        return traineeDao.add(trainee);
+        Trainee saved = traineeDao.add(trainee);
+        gymMetrics.incrementTraineeRegistrations();
+        return saved;
     }
 
     @Override

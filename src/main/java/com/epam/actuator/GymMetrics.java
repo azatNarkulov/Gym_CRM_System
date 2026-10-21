@@ -7,19 +7,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class GymMetrics {
 
+    private static final String REGISTRATIONS_METRIC_NAME = "gym_registrations_total";
+    private static final String ROLE_TAG = "role";
+
     private final Counter traineeRegistrationCounter;
     private final Counter trainerRegistrationCounter;
     private final Counter trainingRegistrationCounter;
 
     public GymMetrics(MeterRegistry registry) {
-        this.traineeRegistrationCounter = Counter.builder("gym_registrations_total")
+        this.traineeRegistrationCounter = Counter.builder(REGISTRATIONS_METRIC_NAME)
                 .description("Total number of registered trainees")
-                .tag("role", "trainee")
+                .tag(ROLE_TAG, "trainee")
                 .register(registry);
 
-        this.trainerRegistrationCounter = Counter.builder("gym_registrations_total")
+        this.trainerRegistrationCounter = Counter.builder(REGISTRATIONS_METRIC_NAME)
                 .description("Total number of registered trainers")
-                .tag("role", "trainer")
+                .tag(ROLE_TAG, "trainer")
                 .register(registry);
 
         this.trainingRegistrationCounter = Counter.builder("gym_training_created_total")

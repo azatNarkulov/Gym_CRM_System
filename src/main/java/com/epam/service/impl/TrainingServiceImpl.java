@@ -1,5 +1,6 @@
 package com.epam.service.impl;
 
+import com.epam.actuator.GymMetrics;
 import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
 import com.epam.domain.TrainingTypeName;
@@ -12,7 +13,6 @@ import com.epam.service.TrainingTypeService;
 import com.epam.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,14 +24,17 @@ public class TrainingServiceImpl implements TrainingService {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrainingServiceImpl.class);
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final TrainingDao trainingDao;
+    private final TrainingTypeService trainingTypeService;
+    private final GymMetrics gymMetrics;
 
-    @Autowired
-    private TrainingDao trainingDao;
-
-    @Autowired
-    private TrainingTypeService trainingTypeService;
+    public TrainingServiceImpl(UserService userService, TrainingDao trainingDao, TrainingTypeService trainingTypeService, GymMetrics gymMetrics) {
+        this.userService = userService;
+        this.trainingDao = trainingDao;
+        this.trainingTypeService = trainingTypeService;
+        this.gymMetrics = gymMetrics;
+    }
 
     @Override
     public Training add(AddTrainingRequest request) {
@@ -47,7 +50,9 @@ public class TrainingServiceImpl implements TrainingService {
         training.setTrainingDuration(request.getTrainingDuration());
         training.setTrainingType(trainingTypeService.findByName(TrainingTypeName.valueOf(request.getTrainingType())));
 
-        return trainingDao.add(training);
+        Training saved = trainingDao.add(training);
+        gymMetrics.incrementTrainingRegistrations();
+        return saved;
     }
 
     @Override

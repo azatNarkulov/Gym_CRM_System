@@ -1,5 +1,6 @@
 package com.epam.service;
 
+import com.epam.actuator.GymMetrics;
 import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
 import com.epam.exception.UserNotFoundException;
@@ -31,6 +32,9 @@ public class TraineeServiceImplTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private GymMetrics gymMetrics;
 
     @Test
     public void shouldAddTrainee() {

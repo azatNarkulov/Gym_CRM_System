@@ -1,5 +1,6 @@
 package com.epam.service;
 
+import com.epam.actuator.GymMetrics;
 import com.epam.dto.TrainingFilterDTO;
 import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
@@ -40,6 +41,9 @@ public class TrainingServiceImplTest {
 
     @Mock
     private TrainingTypeService trainingTypeService;
+
+    @Mock
+    private GymMetrics gymMetrics;
 
     @Test
     public void shouldPersistTraining() {

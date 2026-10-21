@@ -2,15 +2,14 @@ package com.epam.filter;
 
 import com.epam.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.MDC;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -18,10 +17,10 @@ import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class AuthenticationFilter implements Filter {
+@Component
+public class AuthenticationFilter extends OncePerRequestFilter {
 
     public static final String AUTHENTICATED_USERNAME_ATTR = "authenticatedUsername";
-
     private static final String HEADER = "Authorization";
     private static final String PREFIX = "Basic ";
 
@@ -33,13 +32,11 @@ public class AuthenticationFilter implements Filter {
     }
 
     @Override
-    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
+    public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        HttpServletRequest request = (HttpServletRequest) req;
-        HttpServletResponse response = (HttpServletResponse) res;
 
         if (isPublic(request)) {
-            chain.doFilter(req, res);
+            chain.doFilter(request, response);
             return;
         }
 
@@ -51,9 +48,7 @@ public class AuthenticationFilter implements Filter {
 
         String decoded;
         try {
-            decoded = new String(
-                    Base64.getDecoder().decode(authHeader.substring(PREFIX.length())),
-                    StandardCharsets.UTF_8);
+            decoded = new String(Base64.getDecoder().decode(authHeader.substring(PREFIX.length())), StandardCharsets.UTF_8);
         } catch (IllegalArgumentException e) {
             writeUnauthorized(response, request);
             return;
@@ -74,17 +69,21 @@ public class AuthenticationFilter implements Filter {
         }
 
         request.setAttribute(AUTHENTICATED_USERNAME_ATTR, username);
-        chain.doFilter(req, res);
+        chain.doFilter(request, response);
     }
 
     private boolean isPublic(HttpServletRequest request) {
         String path = request.getRequestURI();
         String method = request.getMethod();
+
+        if (path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs") || path.startsWith("/actuator")) {
+            return true;
+        }
+
         return "POST".equals(method) && ("/api/trainees/register".equals(path) || "/api/trainers/register".equals(path));
     }
 
-    private void writeUnauthorized(HttpServletResponse response, HttpServletRequest request)
-            throws IOException {
+    private void writeUnauthorized(HttpServletResponse response, HttpServletRequest request) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());

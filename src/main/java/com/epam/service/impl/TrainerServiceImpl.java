@@ -1,5 +1,6 @@
 package com.epam.service.impl;
 
+import com.epam.actuator.GymMetrics;
 import com.epam.domain.Trainer;
 import com.epam.exception.ValidationException;
 import com.epam.repository.TrainerDao;
@@ -7,7 +8,6 @@ import com.epam.service.TrainerService;
 import com.epam.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,18 +19,24 @@ public class TrainerServiceImpl implements TrainerService {
 
     private static final Logger LOG = LoggerFactory.getLogger(TrainerServiceImpl.class);
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final TrainerDao trainerDao;
+    private final GymMetrics gymMetrics;
 
-    @Autowired
-    private TrainerDao trainerDao;
+    public TrainerServiceImpl(UserService userService, TrainerDao trainerDao, GymMetrics gymMetrics) {
+        this.userService = userService;
+        this.trainerDao = trainerDao;
+        this.gymMetrics = gymMetrics;
+    }
 
     @Override
     public Trainer add(Trainer trainer) {
         validateRequiredSpecialization(trainer);
         LOG.info("Creating trainer: {} {}", trainer.getFirstName(), trainer.getLastName());
         userService.prepareForCreation(trainer);
-        return trainerDao.add(trainer);
+        Trainer saved = trainerDao.add(trainer);
+        gymMetrics.incrementTrainerRegistrations();
+        return saved;
     }
 
     @Override

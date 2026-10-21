@@ -1,5 +1,6 @@
 package com.epam.service;
 
+import com.epam.actuator.GymMetrics;
 import com.epam.domain.Trainer;
 import com.epam.domain.TrainingType;
 import com.epam.domain.TrainingTypeName;
@@ -31,6 +32,9 @@ public class TrainerServiceImplTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private GymMetrics gymMetrics;
 
     @Test
     public void shouldCreateTrainer() {

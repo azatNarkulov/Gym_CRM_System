@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: gym-crm
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true

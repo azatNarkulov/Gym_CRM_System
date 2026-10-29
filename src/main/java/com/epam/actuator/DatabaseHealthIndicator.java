@@ -25,7 +25,7 @@ public class DatabaseHealthIndicator implements HealthIndicator {
             if (result != null && result == 1) {
                 return Health.up().withDetail("message", "Database is up").build();
             } else {
-                LOG.warn("Database health check returned an unexpected result");
+                LOG.error("Database health check returned an unexpected result");
                 return Health.down().withDetail("message", "Database is not up").build();
             }
         } catch (Exception e) {

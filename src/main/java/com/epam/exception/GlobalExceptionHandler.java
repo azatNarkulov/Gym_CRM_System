@@ -68,6 +68,24 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
     }
 
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ResponseEntity<ApiErrorResponse> handleSpringAuth(org.springframework.security.core.AuthenticationException e) {
+        LOG.error("Spring authentication failed: {}", e.getMessage());
+        return build(HttpStatus.UNAUTHORIZED, "Invalid username or password");
+    }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ApiErrorResponse> handleSpringAccessDenied(org.springframework.security.access.AccessDeniedException e) {
+        LOG.error("Spring access denied: {}", e.getMessage());
+        return build(HttpStatus.FORBIDDEN, "Access denied");
+    }
+
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ApiErrorResponse> handleTooManyRequest(TooManyRequestsException e) {
+        LOG.error("Too many requests: {}", e.getMessage());
+        return build(HttpStatus.TOO_MANY_REQUESTS, e.getMessage());
+    }
+
     private ResponseEntity<ApiErrorResponse> build(HttpStatus status, String message) {
         ApiErrorResponse body = new ApiErrorResponse(message);
         return ResponseEntity.status(status).body(body);

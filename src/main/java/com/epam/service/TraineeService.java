@@ -1,12 +1,13 @@
 package com.epam.service;
 
+import com.epam.domain.RegistrationResult;
 import com.epam.domain.Trainee;
 
 import java.util.List;
 
 public interface TraineeService {
 
-    Trainee add(Trainee trainee);
+    RegistrationResult add(Trainee trainee);
 
     Trainee update(Trainee trainee);
 

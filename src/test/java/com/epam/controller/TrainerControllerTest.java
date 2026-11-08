@@ -1,5 +1,6 @@
 package com.epam.controller;
 
+import com.epam.domain.RegistrationResult;
 import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
 import com.epam.domain.Training;
@@ -10,7 +11,7 @@ import com.epam.dto.request.TrainerRegistrationRequest;
 import com.epam.dto.request.UpdateTrainerProfileRequest;
 import com.epam.exception.GlobalExceptionHandler;
 import com.epam.exception.UserNotFoundException;
-import com.epam.filter.AuthenticationFilter;
+import com.epam.security.SecurityConstants;
 import com.epam.service.TrainerService;
 import com.epam.service.TrainingService;
 import com.epam.service.TrainingTypeService;
@@ -76,10 +77,8 @@ public class TrainerControllerTest {
 
         Trainer created = new Trainer();
         created.setUsername("Bilbo.Baggins");
-        created.setPassword("password12");
-
         when(trainingTypeService.findByName(TrainingTypeName.FITNESS)).thenReturn(generateSpecialization());
-        when(trainerService.add(any(Trainer.class))).thenReturn(created);
+        when(trainerService.add(any(Trainer.class))).thenReturn(new RegistrationResult(created, "password12"));
 
         mockMvc.perform(post("/api/trainers/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -108,7 +107,7 @@ public class TrainerControllerTest {
         when(trainerService.findByUsername("Bilbo.Baggins")).thenReturn(trainer);
 
         mockMvc.perform(get("/api/trainers/Bilbo.Baggins")
-                        .requestAttr(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
+                        .requestAttr(SecurityConstants.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("Bilbo.Baggins"))
                 .andExpect(jsonPath("$.firstName").value("Bilbo"));
@@ -117,7 +116,7 @@ public class TrainerControllerTest {
     @Test
     public void shouldReturn403WhenAccessingAnotherUser() throws Exception {
         mockMvc.perform(get("/api/trainers/Saruman.White")
-                        .requestAttr(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
+                        .requestAttr(SecurityConstants.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
                 .andExpect(status().isForbidden());
     }
 
@@ -127,7 +126,7 @@ public class TrainerControllerTest {
                 .thenThrow(new UserNotFoundException("Bilbo.Baggins"));
 
         mockMvc.perform(get("/api/trainers/Bilbo.Baggins")
-                        .requestAttr(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
+                        .requestAttr(SecurityConstants.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
                 .andExpect(status().isNotFound());
     }
 
@@ -143,7 +142,7 @@ public class TrainerControllerTest {
         when(trainerService.update(any(Trainer.class))).thenReturn(existing);
 
         mockMvc.perform(put("/api/trainers/Bilbo.Baggins")
-                        .requestAttr(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins")
+                        .requestAttr(SecurityConstants.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -166,7 +165,7 @@ public class TrainerControllerTest {
                 .thenReturn(List.of(training));
 
         mockMvc.perform(get("/api/trainers/Bilbo.Baggins/trainings")
-                        .requestAttr(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
+                        .requestAttr(SecurityConstants.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].trainingName").value("Yoga"));
     }
@@ -177,7 +176,7 @@ public class TrainerControllerTest {
         request.setIsActive(false);
 
         mockMvc.perform(patch("/api/trainers/Bilbo.Baggins/activate")
-                        .requestAttr(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins")
+                        .requestAttr(SecurityConstants.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
@@ -21,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -34,6 +36,9 @@ public class UserServiceImplTest {
 
     @Mock
     private UserDao userDao;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @Test
     public void shouldGeneratePasswordWithCorrectLength() {
@@ -84,11 +89,12 @@ public class UserServiceImplTest {
     public void shouldPrepareCredentialsForUserCreation() {
         Trainee trainee = generateUser();
         when(userDao.existsByUsername("Bilbo.Baggins")).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("$2a$10$hashed");
 
         userService.prepareForCreation(trainee);
 
         assertEquals("Bilbo.Baggins", trainee.getUsername());
-        assertNotNull(trainee.getPassword());
+        assertEquals("$2a$10$hashed", trainee.getPassword());
     }
 
     @Test
@@ -186,12 +192,14 @@ public class UserServiceImplTest {
     @Test
     public void shouldUpdatePassword() {
         Trainee trainee = generateUser();
-        trainee.setPassword("password12");
+        trainee.setPassword("$2a$10$oldhash");
         when(userDao.findByUsername("Bilbo.Baggins")).thenReturn(Optional.of(trainee));
+        when(passwordEncoder.matches("password12", "$2a$10$oldhash")).thenReturn(true);
+        when(passwordEncoder.encode("password99")).thenReturn("$2a$10$newhash");
 
         userService.changePassword("Bilbo.Baggins", "password12", "password99");
 
-        assertEquals("password99", trainee.getPassword());
+        assertEquals("$2a$10$newhash", trainee.getPassword());
     }
 
     @Test
@@ -233,26 +241,6 @@ public class UserServiceImplTest {
         when(userDao.findByUsername("Bilbo.Baggins")).thenReturn(Optional.of(trainee));
 
         assertThrows(ValidationException.class, () -> userService.setActive("Bilbo.Baggins", false));
-    }
-
-    @Test
-    public void shouldReturnTrueForValidCredentials() {
-        Trainee trainee = generateUser();
-        trainee.setPassword("password12");
-        trainee.setActive(true);
-        when(userDao.findByUsername("Bilbo.Baggins")).thenReturn(Optional.of(trainee));
-
-        assertTrue(userService.matchCredentials("Bilbo.Baggins", "password12"));
-    }
-
-    @Test
-    public void shouldReturnFalseForInvalidCredentials() {
-        Trainee trainee = generateUser();
-        trainee.setPassword("password12");
-        trainee.setActive(true);
-        when(userDao.findByUsername("Bilbo.Baggins")).thenReturn(Optional.of(trainee));
-
-        assertFalse(userService.matchCredentials("Bilbo.Baggins", "password99"));
     }
 
     private Trainee generateUser() {

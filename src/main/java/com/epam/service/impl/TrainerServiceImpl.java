@@ -1,6 +1,7 @@
 package com.epam.service.impl;
 
 import com.epam.actuator.GymMetrics;
+import com.epam.domain.RegistrationResult;
 import com.epam.domain.Trainer;
 import com.epam.exception.ValidationException;
 import com.epam.repository.TrainerDao;
@@ -30,13 +31,13 @@ public class TrainerServiceImpl implements TrainerService {
     }
 
     @Override
-    public Trainer add(Trainer trainer) {
+    public RegistrationResult add(Trainer trainer) {
         validateRequiredSpecialization(trainer);
         LOG.info("Creating trainer: {} {}", trainer.getFirstName(), trainer.getLastName());
-        userService.prepareForCreation(trainer);
+        String rawPassword = userService.prepareForCreation(trainer);
         Trainer saved = trainerDao.add(trainer);
         gymMetrics.incrementTrainerRegistrations();
-        return saved;
+        return new RegistrationResult(saved, rawPassword);
     }
 
     @Override

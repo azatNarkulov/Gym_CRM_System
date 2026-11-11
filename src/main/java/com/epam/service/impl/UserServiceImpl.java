@@ -8,6 +8,7 @@ import com.epam.repository.UserDao;
 import com.epam.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,20 +26,24 @@ public class UserServiceImpl implements UserService {
     private static final int PASSWORD_LENGTH = 10;
 
     private final Random random = new SecureRandom();
-
     private final UserDao userDao;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserDao userDao) {
+    public UserServiceImpl(UserDao userDao, PasswordEncoder passwordEncoder) {
         this.userDao = userDao;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
-    public void prepareForCreation(User user) {
+    public String prepareForCreation(User user) {
         validateRequiredFields(user);
         user.setUsername(generateUsername(user));
-        user.setPassword(generatePassword());
+
+        String rawPassword = generatePassword();
+        user.setPassword(passwordEncoder.encode(rawPassword));
         user.setActive(true);
         LOG.info("Prepared credentials for user: {}", user.getUsername());
+        return rawPassword;
     }
 
     @Override
@@ -78,11 +83,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public void changePassword(String username, String oldPassword, String newPassword) {
         User user = findByUsername(username);
-        if (!user.getPassword().equals(oldPassword)) {
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new AuthenticationException("Username or password is incorrect");
         }
         LOG.info("Changing password for user: {}", username);
-        user.setPassword(newPassword);
+        user.setPassword(passwordEncoder.encode(newPassword));
         userDao.update(user);
     }
 
@@ -96,15 +101,6 @@ public class UserServiceImpl implements UserService {
         user.setActive(active);
         LOG.info("{} user: {}", active ? "Activating" : "Deactivating", username);
         userDao.update(user);
-    }
-
-    @Override
-    public boolean matchCredentials(String username, String password) {
-        LOG.debug("Matching username and password: {}", username);
-        return userDao.findByUsername(username)
-                .filter(u -> u.getPassword().equals(password))
-                .filter(User::isActive)
-                .isPresent();
     }
 
     @Override

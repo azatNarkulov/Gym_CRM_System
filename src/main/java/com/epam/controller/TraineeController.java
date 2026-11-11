@@ -1,5 +1,6 @@
 package com.epam.controller;
 
+import com.epam.domain.RegistrationResult;
 import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
 import com.epam.domain.Training;
@@ -16,10 +17,10 @@ import com.epam.dto.response.TraineeProfileResponse;
 import com.epam.dto.response.TraineeTrainingResponse;
 import com.epam.dto.response.TrainerSummaryResponse;
 import com.epam.exception.AccessDeniedException;
-import com.epam.filter.AuthenticationFilter;
 import com.epam.mapper.TraineeMapper;
 import com.epam.mapper.TrainerMapper;
 import com.epam.mapper.TrainingMapper;
+import com.epam.security.SecurityConstants;
 import com.epam.service.TraineeService;
 import com.epam.service.TrainerService;
 import com.epam.service.TrainingService;
@@ -64,15 +65,15 @@ public class TraineeController {
         trainee.setDateOfBirth(request.getDateOfBirth());
         trainee.setAddress(request.getAddress());
 
-        Trainee created = traineeService.add(trainee);
-        return ResponseEntity.ok(new RegistrationResponse(created.getUsername(), created.getPassword()));
+        RegistrationResult result = traineeService.add(trainee);
+        return ResponseEntity.ok(new RegistrationResponse(result.user().getUsername(), result.rawPassword()));
     }
 
     @Operation(summary = "Get trainee profile")
     @GetMapping("/{username}")
     public ResponseEntity<TraineeProfileResponse> getProfile(
             @PathVariable String username,
-            @RequestAttribute(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR) String authenticated) {
+            @RequestAttribute(SecurityConstants.AUTHENTICATED_USERNAME_ATTR) String authenticated) {
         requireSelf(username, authenticated);
         Trainee trainee = traineeService.findByUsername(username);
         return ResponseEntity.ok(TraineeMapper.toProfile(trainee));
@@ -82,7 +83,7 @@ public class TraineeController {
     @PutMapping("/{username}")
     public ResponseEntity<TraineeProfileResponse> updateProfile(
             @PathVariable String username,
-            @RequestAttribute(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR) String authenticated,
+            @RequestAttribute(SecurityConstants.AUTHENTICATED_USERNAME_ATTR) String authenticated,
             @Valid @RequestBody UpdateTraineeProfileRequest request) {
         requireSelf(username, authenticated);
 
@@ -101,7 +102,7 @@ public class TraineeController {
     @DeleteMapping("/{username}")
     public ResponseEntity<Void> deleteProfile(
             @PathVariable String username,
-            @RequestAttribute(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR) String authenticated) {
+            @RequestAttribute(SecurityConstants.AUTHENTICATED_USERNAME_ATTR) String authenticated) {
         requireSelf(username, authenticated);
         traineeService.deleteByUsername(username);
         return ResponseEntity.ok().build();
@@ -111,7 +112,7 @@ public class TraineeController {
     @GetMapping("/{username}/trainers/not-assigned")
     public ResponseEntity<List<NotAssignedTrainerResponse>> getNotAssignedTrainers(
             @PathVariable String username,
-            @RequestAttribute(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR) String authenticated) {
+            @RequestAttribute(SecurityConstants.AUTHENTICATED_USERNAME_ATTR) String authenticated) {
         requireSelf(username, authenticated);
         List<Trainer> trainers = trainerService.getTrainersNotAssignedToTrainee(username);
         return ResponseEntity.ok(trainers.stream().map(TrainerMapper::toNotAssigned).toList());
@@ -121,7 +122,7 @@ public class TraineeController {
     @PutMapping("/{username}/trainers")
     public ResponseEntity<List<TrainerSummaryResponse>> updateTrainers(
             @PathVariable String username,
-            @RequestAttribute(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR) String authenticated,
+            @RequestAttribute(SecurityConstants.AUTHENTICATED_USERNAME_ATTR) String authenticated,
             @Valid @RequestBody UpdateTraineeTrainersRequest request) {
         requireSelf(username, authenticated);
 
@@ -142,7 +143,7 @@ public class TraineeController {
     @GetMapping("/{username}/trainings")
     public ResponseEntity<List<TraineeTrainingResponse>> getTrainings(
             @PathVariable String username,
-            @RequestAttribute(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR) String authenticated,
+            @RequestAttribute(SecurityConstants.AUTHENTICATED_USERNAME_ATTR) String authenticated,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
             @RequestParam(required = false) String trainerName,
@@ -159,7 +160,7 @@ public class TraineeController {
     @PatchMapping("/{username}/activate")
     public ResponseEntity<Void> setActive(
             @PathVariable String username,
-            @RequestAttribute(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR) String authenticated,
+            @RequestAttribute(SecurityConstants.AUTHENTICATED_USERNAME_ATTR) String authenticated,
             @Valid @RequestBody ActivationRequest request) {
         requireSelf(username, authenticated);
         userService.setActive(username, request.getIsActive());

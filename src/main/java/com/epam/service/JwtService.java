@@ -1,4 +1,4 @@
-package com.epam.security;
+package com.epam.service;
 
 import com.epam.config.JwtProperties;
 import com.epam.domain.Trainer;
@@ -69,7 +69,7 @@ public class JwtService {
             parse(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
-            LOG.debug("Invalid JWT: {}", e.getMessage());
+            LOG.debug("Invalid JWT", e);
             return false;
         }
     }
@@ -80,14 +80,6 @@ public class JwtService {
 
     public String extractJti(String token) {
         return parse(token).getId();
-    }
-
-    public String extractRole(String token) {
-        return parse(token).get(CLAIM_ROLE, String.class);
-    }
-
-    public Date extractExpiration(String token) {
-        return parse(token).getExpiration();
     }
 
     private String resolveRole(User user) {

@@ -1,4 +1,4 @@
-package com.epam.security;
+package com.epam.service.impl;
 
 import com.epam.domain.Trainer;
 import com.epam.domain.User;

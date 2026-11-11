@@ -1,4 +1,4 @@
-package com.epam.security;
+package com.epam.service;
 
 import com.epam.exception.TooManyRequestsException;
 import org.junit.jupiter.api.BeforeEach;

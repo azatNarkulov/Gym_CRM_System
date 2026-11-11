@@ -1,4 +1,4 @@
-package com.epam.security;
+package com.epam.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +20,7 @@ public class TokenBlacklistService {
     public void blacklist(String jti, Instant expiration) {
         if (jti != null && expiration != null) {
             blacklist.put(jti, expiration);
-            LOG.info("Token {} added to blacklist", jti);
+            LOG.debug("Token {} added to blacklist", jti);
         }
     }
 

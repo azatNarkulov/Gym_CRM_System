@@ -1,4 +1,4 @@
-package com.epam.security;
+package com.epam.service;
 
 import org.junit.jupiter.api.Test;
 

@@ -28,7 +28,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
-        LOG.debug("Authentication required for {} {}", request.getMethod(), request.getRequestURI());
+        LOG.debug("Authentication required", authException);
         writeError(response, HttpStatus.UNAUTHORIZED, "Authentication required");
     }
 

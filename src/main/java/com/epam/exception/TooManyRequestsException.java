@@ -1,7 +1,7 @@
 package com.epam.exception;
 
 public class TooManyRequestsException extends RuntimeException {
-    public TooManyRequestsException(String message) {
-        super(message);
+    public TooManyRequestsException() {
+        super("Account is temporarily blocked. Try again later");
     }
 }

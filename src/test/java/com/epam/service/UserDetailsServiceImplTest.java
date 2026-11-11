@@ -1,9 +1,9 @@
-package com.epam.security;
+package com.epam.service;
 
 import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
 import com.epam.exception.UserNotFoundException;
-import com.epam.service.UserService;
+import com.epam.service.impl.UserDetailsServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

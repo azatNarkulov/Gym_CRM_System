@@ -1,8 +1,7 @@
-package com.epam.security;
+package com.epam.service;
 
 import com.epam.config.JwtProperties;
 import com.epam.domain.Trainee;
-import com.epam.domain.Trainer;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,15 +44,6 @@ public class JwtServiceTest {
         assertNotNull(claims.getId());
         assertNotNull(claims.getIssuedAt());
         assertNotNull(claims.getExpiration());
-    }
-
-    @Test
-    public void shouldMarkTrainerRoleForTrainer() {
-        Trainer trainer = generateTrainer();
-
-        String token = jwtService.generateToken(trainer);
-
-        assertEquals("TRAINER", jwtService.extractRole(token));
     }
 
     @Test
@@ -120,11 +110,5 @@ public class JwtServiceTest {
         Trainee trainee = new Trainee();
         trainee.setUsername("Bilbo.Baggins");
         return trainee;
-    }
-
-    private Trainer generateTrainer() {
-        Trainer trainer = new Trainer();
-        trainer.setUsername("Gandalf.Grey");
-        return trainer;
     }
 }

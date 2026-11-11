@@ -52,13 +52,13 @@ public class GlobalExceptionHandler {
         String message = e.getBindingResult().getFieldErrors().stream()
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
                 .collect(Collectors.joining("; "));
-        LOG.error("Request validation failed: {}", message);
+        LOG.error("Request validation failed: {}", message, e);
         return build(HttpStatus.BAD_REQUEST, message);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
-        LOG.error("Type mismatch for parameter: {}", e.getName());
+        LOG.error("Type mismatch", e);
         return build(HttpStatus.BAD_REQUEST, "Invalid value for parameter: " + e.getName());
     }
 
@@ -70,20 +70,20 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
     public ResponseEntity<ApiErrorResponse> handleSpringAuth(org.springframework.security.core.AuthenticationException e) {
-        LOG.error("Spring authentication failed: {}", e.getMessage());
+        LOG.error("Spring authentication failed", e);
         return build(HttpStatus.UNAUTHORIZED, "Invalid username or password");
     }
 
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
     public ResponseEntity<ApiErrorResponse> handleSpringAccessDenied(org.springframework.security.access.AccessDeniedException e) {
-        LOG.error("Spring access denied: {}", e.getMessage());
+        LOG.error("Spring access denied", e);
         return build(HttpStatus.FORBIDDEN, "Access denied");
     }
 
     @ExceptionHandler(TooManyRequestsException.class)
     public ResponseEntity<ApiErrorResponse> handleTooManyRequest(TooManyRequestsException e) {
-        LOG.error("Too many requests: {}", e.getMessage());
-        return build(HttpStatus.TOO_MANY_REQUESTS, e.getMessage());
+        LOG.error("Too many requests", e);
+        return build(HttpStatus.TOO_MANY_REQUESTS, "Too many failed login attempts. Account is temporarily blocked.");
     }
 
     private ResponseEntity<ApiErrorResponse> build(HttpStatus status, String message) {

@@ -1,6 +1,7 @@
 package com.epam.service;
 
 import com.epam.actuator.GymMetrics;
+import com.epam.domain.RegistrationResult;
 import com.epam.domain.Trainer;
 import com.epam.domain.TrainingType;
 import com.epam.domain.TrainingTypeName;
@@ -15,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
@@ -41,9 +43,13 @@ public class TrainerServiceImplTest {
         Trainer trainer = generateTrainer();
         trainer.setSpecialization(generateSpecialization());
 
+        when(userService.prepareForCreation(trainer)).thenReturn("password12");
         when(trainerDao.add(trainer)).thenReturn(trainer);
 
-        assertSame(trainer, trainerService.add(trainer));
+        RegistrationResult result = trainerService.add(trainer);
+
+        assertSame(trainer, result.user());
+        assertEquals("password12", result.rawPassword());
         verify(userService).prepareForCreation(trainer);
         verify(trainerDao).add(trainer);
     }

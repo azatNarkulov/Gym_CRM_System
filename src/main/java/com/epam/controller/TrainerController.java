@@ -1,5 +1,6 @@
 package com.epam.controller;
 
+import com.epam.domain.RegistrationResult;
 import com.epam.domain.Trainer;
 import com.epam.domain.Training;
 import com.epam.domain.TrainingType;
@@ -12,9 +13,9 @@ import com.epam.dto.response.RegistrationResponse;
 import com.epam.dto.response.TrainerProfileResponse;
 import com.epam.dto.response.TrainerTrainingResponse;
 import com.epam.exception.AccessDeniedException;
-import com.epam.filter.AuthenticationFilter;
 import com.epam.mapper.TrainerMapper;
 import com.epam.mapper.TrainingMapper;
+import com.epam.security.SecurityConstants;
 import com.epam.service.TrainerService;
 import com.epam.service.TrainingService;
 import com.epam.service.TrainingTypeService;
@@ -60,15 +61,15 @@ public class TrainerController {
         trainer.setLastName(request.getLastName());
         trainer.setSpecialization(specialization);
 
-        Trainer created = trainerService.add(trainer);
-        return ResponseEntity.ok(new RegistrationResponse(created.getUsername(), created.getPassword()));
+        RegistrationResult result = trainerService.add(trainer);
+        return ResponseEntity.ok(new RegistrationResponse(result.user().getUsername(), result.rawPassword()));
     }
 
     @Operation(summary = "Get trainer profile")
     @GetMapping("/{username}")
     public ResponseEntity<TrainerProfileResponse> getProfile(
             @PathVariable String username,
-            @RequestAttribute(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR) String authenticated) {
+            @RequestAttribute(SecurityConstants.AUTHENTICATED_USERNAME_ATTR) String authenticated) {
         requireSelf(username, authenticated);
         Trainer trainer = trainerService.findByUsername(username);
         return ResponseEntity.ok(TrainerMapper.toProfile(trainer));
@@ -78,7 +79,7 @@ public class TrainerController {
     @PutMapping("/{username}")
     public ResponseEntity<TrainerProfileResponse> updateProfile(
             @PathVariable String username,
-            @RequestAttribute(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR) String authenticated,
+            @RequestAttribute(SecurityConstants.AUTHENTICATED_USERNAME_ATTR) String authenticated,
             @Valid @RequestBody UpdateTrainerProfileRequest request) {
         requireSelf(username, authenticated);
 
@@ -95,7 +96,7 @@ public class TrainerController {
     @GetMapping("/{username}/trainings")
     public ResponseEntity<List<TrainerTrainingResponse>> getTrainings(
             @PathVariable String username,
-            @RequestAttribute(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR) String authenticated,
+            @RequestAttribute(SecurityConstants.AUTHENTICATED_USERNAME_ATTR) String authenticated,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
             @RequestParam(required = false) String traineeName) {
@@ -111,7 +112,7 @@ public class TrainerController {
     @PatchMapping("/{username}/activate")
     public ResponseEntity<Void> setActive(
             @PathVariable String username,
-            @RequestAttribute(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR) String authenticated,
+            @RequestAttribute(SecurityConstants.AUTHENTICATED_USERNAME_ATTR) String authenticated,
             @Valid @RequestBody ActivationRequest request) {
         requireSelf(username, authenticated);
         userService.setActive(username, request.getIsActive());

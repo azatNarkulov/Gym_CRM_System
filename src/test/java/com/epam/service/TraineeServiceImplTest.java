@@ -1,6 +1,7 @@
 package com.epam.service;
 
 import com.epam.actuator.GymMetrics;
+import com.epam.domain.RegistrationResult;
 import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
 import com.epam.exception.UserNotFoundException;
@@ -39,9 +40,13 @@ public class TraineeServiceImplTest {
     @Test
     public void shouldAddTrainee() {
         Trainee trainee = generateTrainee();
+        when(userService.prepareForCreation(trainee)).thenReturn("password12");
         when(traineeDao.add(trainee)).thenReturn(trainee);
 
-        assertSame(trainee, traineeService.add(trainee));
+        RegistrationResult result = traineeService.add(trainee);
+
+        assertSame(trainee, result.user());
+        assertEquals("password12", result.rawPassword());
         verify(userService).prepareForCreation(trainee);
         verify(traineeDao).add(trainee);
     }

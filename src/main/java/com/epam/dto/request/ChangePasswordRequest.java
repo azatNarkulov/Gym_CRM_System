@@ -6,10 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ChangeLoginRequest {
-
-    @NotBlank(message = "Username is required")
-    private String username;
+public class ChangePasswordRequest {
 
     @NotBlank(message = "Old password is required")
     private String oldPassword;

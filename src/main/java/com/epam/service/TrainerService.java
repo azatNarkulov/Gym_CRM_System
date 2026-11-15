@@ -1,12 +1,13 @@
 package com.epam.service;
 
+import com.epam.domain.RegistrationResult;
 import com.epam.domain.Trainer;
 
 import java.util.List;
 
 public interface TrainerService {
 
-    Trainer add(Trainer trainer);
+    RegistrationResult add(Trainer trainer);
 
     Trainer update(Trainer trainer);
 

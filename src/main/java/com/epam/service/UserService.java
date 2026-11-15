@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public interface UserService {
 
-    void prepareForCreation(User user);
+    String prepareForCreation(User user);
 
     Optional<User> get(Long id);
 
@@ -17,8 +17,6 @@ public interface UserService {
     void changePassword(String username, String oldPassword, String newPassword);
 
     void setActive(String username, boolean active);
-
-    boolean matchCredentials(String username, String password);
 
     String generatePassword();
 

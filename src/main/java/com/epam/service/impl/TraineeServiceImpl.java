@@ -1,6 +1,7 @@
 package com.epam.service.impl;
 
 import com.epam.actuator.GymMetrics;
+import com.epam.domain.RegistrationResult;
 import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
 import com.epam.repository.TraineeDao;
@@ -32,12 +33,12 @@ public class TraineeServiceImpl implements TraineeService {
     }
 
     @Override
-    public Trainee add(Trainee trainee) {
+    public RegistrationResult add(Trainee trainee) {
         LOG.info("Creating trainee: {} {}", trainee.getFirstName(), trainee.getLastName());
-        userService.prepareForCreation(trainee);
+        String rawPassword = userService.prepareForCreation(trainee);
         Trainee saved = traineeDao.add(trainee);
         gymMetrics.incrementTraineeRegistrations();
-        return saved;
+        return new RegistrationResult(saved, rawPassword);
     }
 
     @Override

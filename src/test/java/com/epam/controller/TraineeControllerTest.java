@@ -1,5 +1,6 @@
 package com.epam.controller;
 
+import com.epam.domain.RegistrationResult;
 import com.epam.domain.Trainee;
 import com.epam.domain.Trainer;
 import com.epam.domain.Training;
@@ -12,7 +13,7 @@ import com.epam.dto.request.UpdateTraineeProfileRequest;
 import com.epam.dto.request.UpdateTraineeTrainersRequest;
 import com.epam.exception.GlobalExceptionHandler;
 import com.epam.exception.UserNotFoundException;
-import com.epam.filter.AuthenticationFilter;
+import com.epam.security.SecurityConstants;
 import com.epam.service.TraineeService;
 import com.epam.service.TrainerService;
 import com.epam.service.TrainingService;
@@ -76,9 +77,7 @@ public class TraineeControllerTest {
 
         Trainee created = new Trainee();
         created.setUsername("Bilbo.Baggins");
-        created.setPassword("pass123456");
-
-        when(traineeService.add(any(Trainee.class))).thenReturn(created);
+        when(traineeService.add(any(Trainee.class))).thenReturn(new RegistrationResult(created, "pass123456"));
 
         mockMvc.perform(post("/api/trainees/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -106,7 +105,7 @@ public class TraineeControllerTest {
         when(traineeService.findByUsername("Bilbo.Baggins")).thenReturn(trainee);
 
         mockMvc.perform(get("/api/trainees/Bilbo.Baggins")
-                        .requestAttr(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
+                        .requestAttr(SecurityConstants.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("Bilbo.Baggins"))
                 .andExpect(jsonPath("$.firstName").value("Bilbo"));
@@ -115,7 +114,7 @@ public class TraineeControllerTest {
     @Test
     public void shouldReturn403WhenAccessingAnotherUser() throws Exception {
         mockMvc.perform(get("/api/trainees/Frodo.Baggins")
-                        .requestAttr(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
+                        .requestAttr(SecurityConstants.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
                 .andExpect(status().isForbidden());
     }
 
@@ -125,7 +124,7 @@ public class TraineeControllerTest {
                 .thenThrow(new UserNotFoundException("Bilbo.Baggins"));
 
         mockMvc.perform(get("/api/trainees/Bilbo.Baggins")
-                        .requestAttr(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
+                        .requestAttr(SecurityConstants.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
                 .andExpect(status().isNotFound());
     }
 
@@ -141,7 +140,7 @@ public class TraineeControllerTest {
         when(traineeService.update(any(Trainee.class))).thenReturn(existing);
 
         mockMvc.perform(put("/api/trainees/Bilbo.Baggins")
-                        .requestAttr(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins")
+                        .requestAttr(SecurityConstants.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -151,7 +150,7 @@ public class TraineeControllerTest {
     @Test
     public void shouldReturn200() throws Exception {
         mockMvc.perform(delete("/api/trainees/Bilbo.Baggins")
-                        .requestAttr(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
+                        .requestAttr(SecurityConstants.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
                 .andExpect(status().isOk());
     }
 
@@ -167,7 +166,7 @@ public class TraineeControllerTest {
                 .thenReturn(List.of(trainer));
 
         mockMvc.perform(get("/api/trainees/Bilbo.Baggins/trainers/not-assigned")
-                        .requestAttr(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
+                        .requestAttr(SecurityConstants.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].username").value("Gandalf.Grey"));
     }
@@ -188,7 +187,7 @@ public class TraineeControllerTest {
         when(traineeService.findByUsername("Bilbo.Baggins")).thenReturn(trainee);
 
         mockMvc.perform(put("/api/trainees/Bilbo.Baggins/trainers")
-                        .requestAttr(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins")
+                        .requestAttr(SecurityConstants.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"trainers\":[{\"trainerUsername\":\"Gandalf.Grey\"}]}"))
                 .andExpect(status().isOk())
@@ -211,7 +210,7 @@ public class TraineeControllerTest {
                 .thenReturn(List.of(training));
 
         mockMvc.perform(get("/api/trainees/Bilbo.Baggins/trainings")
-                        .requestAttr(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
+                        .requestAttr(SecurityConstants.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].trainingName").value("Yoga"));
     }
@@ -222,7 +221,7 @@ public class TraineeControllerTest {
         request.setIsActive(false);
 
         mockMvc.perform(patch("/api/trainees/Bilbo.Baggins/activate")
-                        .requestAttr(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins")
+                        .requestAttr(SecurityConstants.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
@@ -231,7 +230,7 @@ public class TraineeControllerTest {
     @Test
     public void shouldReturn400WhenDateParamInvalid() throws Exception {
         mockMvc.perform(get("/api/trainees/Bilbo.Baggins/trainings")
-                        .requestAttr(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins")
+                        .requestAttr(SecurityConstants.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins")
                         .param("fromDate", "not-a-date"))
                 .andExpect(status().isBadRequest());
     }
@@ -242,7 +241,7 @@ public class TraineeControllerTest {
                 .thenThrow(new RuntimeException("boom"));
 
         mockMvc.perform(get("/api/trainees/Bilbo.Baggins")
-                        .requestAttr(AuthenticationFilter.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
+                        .requestAttr(SecurityConstants.AUTHENTICATED_USERNAME_ATTR, "Bilbo.Baggins"))
                 .andExpect(status().isInternalServerError());
     }
 

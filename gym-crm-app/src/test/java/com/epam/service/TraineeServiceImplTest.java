@@ -8,6 +8,8 @@ import com.epam.domain.Training;
 import com.epam.exception.UserNotFoundException;
 import com.epam.dto.request.WorkloadAction;
 import com.epam.integration.workload.TrainerWorkloadClient;
+import com.epam.integration.workload.TrainerWorkloadProperties;
+import com.epam.integration.workload.TrainerWorkloadRestClient;
 import com.epam.repository.TraineeDao;
 import com.epam.repository.TrainingDao;
 import com.epam.service.impl.TraineeServiceImpl;
@@ -26,8 +28,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.doThrow;
 
 @ExtendWith(MockitoExtension.class)
 public class TraineeServiceImplTest {
@@ -115,20 +115,29 @@ public class TraineeServiceImplTest {
     }
 
     @Test
-    public void shouldNotDeleteTraineeWhenWorkloadServiceFails() {
+    public void shouldDeleteTraineeWhenWorkloadIsUnavailable() {
         Training training = new Training();
         training.setTrainer(generateTrainer());
         training.setTrainingDate(java.time.LocalDate.of(2026, 11, 20));
         training.setTrainingDuration(java.time.Duration.ofHours(1));
-        when(trainingDao.findByTraineeUsername("Bilbo.Baggins")).thenReturn(List.of(training));
-        doThrow(new com.epam.integration.workload.TrainerWorkloadUnavailableException(
-                new RuntimeException("unavailable")))
-                .when(trainerWorkloadClient).updateWorkload(org.mockito.ArgumentMatchers.any());
+        when(trainingDao.findByTraineeUsername("Bilbo.Baggins")).thenReturn(List.of(training, training));
+        when(traineeDao.delete("Bilbo.Baggins")).thenReturn(true);
+        var calls = new java.util.concurrent.atomic.AtomicInteger();
+        var http = org.springframework.web.client.RestClient.builder()
+                .requestInterceptor((request, body, execution) -> {
+                    calls.incrementAndGet();
+                    throw new org.springframework.web.client.ResourceAccessException("unavailable");
+                }).build();
+        var properties = new TrainerWorkloadProperties("http://workload",
+                java.time.Duration.ofSeconds(1), java.time.Duration.ofSeconds(1));
+        var client = new TrainerWorkloadRestClient(http,
+                io.github.resilience4j.circuitbreaker.CircuitBreaker.ofDefaults("test"),
+                properties, uri -> uri);
+        var service = new TraineeServiceImpl(userService, traineeDao, trainingDao, client, gymMetrics);
 
-        assertThrows(com.epam.integration.workload.TrainerWorkloadUnavailableException.class,
-                () -> traineeService.deleteByUsername("Bilbo.Baggins"));
-
-        verify(traineeDao, never()).delete("Bilbo.Baggins");
+        assertTrue(service.deleteByUsername("Bilbo.Baggins"));
+        assertEquals(2, calls.get());
+        verify(traineeDao).delete("Bilbo.Baggins");
     }
 
     @Test

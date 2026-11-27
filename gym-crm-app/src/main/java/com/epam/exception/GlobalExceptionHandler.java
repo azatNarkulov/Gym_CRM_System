@@ -1,7 +1,6 @@
 package com.epam.exception;
 
 import com.epam.dto.response.ApiErrorResponse;
-import com.epam.integration.workload.TrainerWorkloadUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -85,13 +84,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleTooManyRequest(TooManyRequestsException e) {
         LOG.error("Too many requests", e);
         return build(HttpStatus.TOO_MANY_REQUESTS, "Too many failed login attempts. Account is temporarily blocked.");
-    }
-
-    @ExceptionHandler(TrainerWorkloadUnavailableException.class)
-    public ResponseEntity<ApiErrorResponse> handleTrainerWorkloadUnavailable(
-            TrainerWorkloadUnavailableException e) {
-        LOG.warn("Trainer Workload service is unavailable", e);
-        return build(HttpStatus.SERVICE_UNAVAILABLE, "A dependent service is temporarily unavailable");
     }
 
     private ResponseEntity<ApiErrorResponse> build(HttpStatus status, String message) {

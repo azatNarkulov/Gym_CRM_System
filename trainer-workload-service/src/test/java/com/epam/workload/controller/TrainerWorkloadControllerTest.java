@@ -1,6 +1,6 @@
 package com.epam.workload.controller;
 
-import com.epam.workload.dto.response.WorkloadSummaryResponse;
+import com.epam.workload.domain.MonthlySummary;
 import com.epam.workload.service.TrainerWorkloadService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,13 +10,14 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 
-import java.math.BigDecimal;
-import java.util.List;
+import java.time.Duration;
+import java.time.YearMonth;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -47,7 +48,7 @@ public class TrainerWorkloadControllerTest {
 
     @Test
     public void shouldAcceptWorkloadUpdateAndReturn200() throws Exception {
-        mockMvc.perform(post("/api/workload")
+        mockMvc.perform(post("/api/trainers/trainer.username/workload")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -67,7 +68,7 @@ public class TrainerWorkloadControllerTest {
 
     @Test
     public void shouldRejectInvalidWorkloadUpdate() throws Exception {
-        mockMvc.perform(post("/api/workload")
+        mockMvc.perform(post("/api/trainers/trainer.username/workload")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -84,8 +85,28 @@ public class TrainerWorkloadControllerTest {
     }
 
     @Test
+    public void shouldRejectUsernameMismatch() throws Exception {
+        mockMvc.perform(post("/api/trainers/another.username/workload")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "trainerUsername": "trainer.username",
+                                  "trainerFirstName": "First",
+                                  "trainerLastName": "Last",
+                                  "isActive": true,
+                                  "trainingDate": "2026-11-20",
+                                  "trainingDuration": "PT1H",
+                                  "actionType": "ADD"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Invalid request"));
+        verify(service, never()).updateWorkload(any());
+    }
+
+    @Test
     public void shouldRejectUnsupportedWorkloadAction() throws Exception {
-        mockMvc.perform(post("/api/workload")
+        mockMvc.perform(post("/api/trainers/trainer.username/workload")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -104,14 +125,8 @@ public class TrainerWorkloadControllerTest {
     @Test
     public void shouldReturnMonthlyWorkloadInHours() throws Exception {
         when(service.getMonthlyWorkload("trainer.username", 2026, 11))
-                .thenReturn(new WorkloadSummaryResponse(
-                        "trainer.username",
-                        "First",
-                        "Last",
-                        true,
-                        List.of(new WorkloadSummaryResponse.YearSummary(
-                                2026,
-                                List.of(new WorkloadSummaryResponse.MonthSummary(11, new BigDecimal("1.5")))))));
+                .thenReturn(new MonthlySummary("trainer.username", "First", "Last", true,
+                        YearMonth.of(2026, 11), Duration.ofMinutes(90)));
 
         mockMvc.perform(get("/api/trainers/trainer.username/workload")
                         .param("year", "2026")

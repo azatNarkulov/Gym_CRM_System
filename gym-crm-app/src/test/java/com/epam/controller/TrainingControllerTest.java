@@ -3,7 +3,6 @@ package com.epam.controller;
 import com.epam.domain.Training;
 import com.epam.dto.request.AddTrainingRequest;
 import com.epam.exception.GlobalExceptionHandler;
-import com.epam.integration.workload.TrainerWorkloadUnavailableException;
 import com.epam.service.TrainingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -22,7 +21,6 @@ import java.time.LocalDate;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -74,21 +72,4 @@ public class TrainingControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    @Test
-    public void shouldReturn503WhenTrainerWorkloadIsUnavailable() throws Exception {
-        AddTrainingRequest request = new AddTrainingRequest();
-        request.setTraineeUsername("Bilbo.Baggins");
-        request.setTrainerUsername("Gandalf.Grey");
-        request.setTrainingName("Yoga");
-        request.setTrainingDate(LocalDate.of(2026, 10, 15));
-        request.setTrainingDuration(Duration.ofHours(1));
-        request.setTrainingType("FITNESS");
-        doThrow(new TrainerWorkloadUnavailableException(new RuntimeException("connection failed")))
-                .when(trainingService).add(any(AddTrainingRequest.class));
-
-        mockMvc.perform(post("/api/trainings")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isServiceUnavailable());
-    }
 }

@@ -10,6 +10,8 @@ import com.epam.domain.TrainingTypeName;
 import com.epam.dto.request.AddTrainingRequest;
 import com.epam.dto.request.WorkloadAction;
 import com.epam.integration.workload.TrainerWorkloadClient;
+import com.epam.integration.workload.TrainerWorkloadProperties;
+import com.epam.integration.workload.TrainerWorkloadRestClient;
 import com.epam.repository.TrainingDao;
 import com.epam.service.impl.TrainingServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -88,6 +90,39 @@ public class TrainingServiceImplTest {
         assertEquals(WorkloadAction.ADD, workloadRequest.getValue().actionType());
         assertEquals("Gandalf.Grey", workloadRequest.getValue().trainerUsername());
         assertEquals(Duration.ofHours(1), workloadRequest.getValue().trainingDuration());
+    }
+
+    @Test
+    public void shouldPersistTrainingWhenWorkloadIsUnavailable() {
+        Trainee trainee = new Trainee();
+        Trainer trainer = new Trainer();
+        trainer.setUsername("Gandalf.Grey");
+        trainer.setFirstName("Gandalf");
+        trainer.setLastName("Grey");
+        TrainingType specialization = generateTrainingType();
+        AddTrainingRequest request = new AddTrainingRequest();
+        request.setTraineeUsername("Bilbo.Baggins");
+        request.setTrainerUsername("Gandalf.Grey");
+        request.setTrainingName("Fitness");
+        request.setTrainingDate(LocalDate.of(2026, 10, 15));
+        request.setTrainingDuration(Duration.ofHours(1));
+        request.setTrainingType("FITNESS");
+        when(userService.findByUsername("Bilbo.Baggins")).thenReturn(trainee);
+        when(userService.findByUsername("Gandalf.Grey")).thenReturn(trainer);
+        when(trainingTypeService.findByName(TrainingTypeName.FITNESS)).thenReturn(specialization);
+        when(trainingDao.add(any(Training.class))).thenAnswer(inv -> inv.getArgument(0));
+        var http = org.springframework.web.client.RestClient.builder()
+                .requestInterceptor((httpRequest, body, execution) -> {
+                    throw new org.springframework.web.client.ResourceAccessException("unavailable");
+                }).build();
+        var client = new TrainerWorkloadRestClient(http,
+                io.github.resilience4j.circuitbreaker.CircuitBreaker.ofDefaults("test"),
+                new TrainerWorkloadProperties("http://workload", Duration.ofSeconds(1), Duration.ofSeconds(1)),
+                uri -> uri);
+        var service = new TrainingServiceImpl(userService, trainingDao, trainingTypeService, gymMetrics, client);
+
+        assertNotNull(service.add(request));
+        verify(trainingDao).add(any(Training.class));
     }
     
     @Test

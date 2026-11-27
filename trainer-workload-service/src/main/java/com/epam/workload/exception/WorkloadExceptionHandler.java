@@ -22,13 +22,13 @@ public class WorkloadExceptionHandler {
     @ExceptionHandler(TrainerWorkloadNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleNotFound(TrainerWorkloadNotFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("message", exception.getMessage()));
+                .body(Map.of("message", "Trainer workload not found"));
     }
 
     @ExceptionHandler(InvalidWorkloadChangeException.class)
     public ResponseEntity<Map<String, String>> handleInvalidChange(InvalidWorkloadChangeException exception) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(Map.of("message", exception.getMessage()));
+                .body(Map.of("message", "Invalid workload change"));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -44,7 +44,8 @@ public class WorkloadExceptionHandler {
     @ExceptionHandler({
             HttpMessageNotReadableException.class,
             MethodArgumentTypeMismatchException.class,
-            MissingServletRequestParameterException.class
+            MissingServletRequestParameterException.class,
+            WorkloadUsernameMismatchException.class
     })
     public ResponseEntity<Map<String, String>> handleMalformedRequest(Exception exception) {
         return ResponseEntity.badRequest().body(Map.of("message", "Invalid request"));

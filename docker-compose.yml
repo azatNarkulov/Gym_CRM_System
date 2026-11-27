@@ -15,12 +15,15 @@ services:
       retries: 5
 
   app:
-    build: .
+    build:
+      context: ./gym-crm-app
     container_name: gym-crm-app
     ports:
       - "8080:8080"
     depends_on:
       db:
+        condition: service_healthy
+      eureka-server:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: docker
@@ -28,3 +31,46 @@ services:
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+      TRAINER_WORKLOAD_BASE_URL: http://trainer-workload
+      EUREKA_CLIENT_ENABLED: "true"
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  trainer-workload:
+    build:
+      context: ./trainer-workload-service
+    container_name: trainer-workload
+    ports:
+      - "8081:8081"
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8081
+      JWT_SECRET: ${JWT_SECRET}
+      EUREKA_CLIENT_ENABLED: "true"
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  eureka-server:
+    build:
+      context: ./eureka-server
+    container_name: gym-crm-eureka
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
